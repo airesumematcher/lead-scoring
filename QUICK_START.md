@@ -1,201 +1,363 @@
-# Quick Start
+# Quick Start Guide - Production Deployment
 
-This repo now runs the revised March 2026 PRD version of ACE: a two-layer buying-intelligence platform.
+## 5-Minute Setup
 
-Canonical project memory: [PROJECT_CONTEXT.md](PROJECT_CONTEXT.md)
-
-## 1. Install
+### Option 1: Local Python (Fastest)
 
 ```bash
-cd /Users/schadha/Desktop/lead-scoring
-python3 -m venv .venv
+# 1. Create environment
+python -m venv .venv
 source .venv/bin/activate
+
+# 2. Install dependencies
 pip install -r requirements.txt
 pip install -e .
-```
 
-## 2. Verify
-
-```bash
+# 3. Verify the project
 python verify_setup.py
+
+# 4. Start the API
+uvicorn src.lead_scoring.api.app:app --host 0.0.0.0 --port 8000
+
+# 5. Verify
+curl http://localhost:8000/health
+open http://localhost:8000/docs
 ```
 
-What this checks:
-- PRD runtime imports
-- Two-layer scoring logic
-- API endpoints
-- Buying-group reporting
-- Retraining workflow
-
-## 3. Start the API
+### Option 2: Local Docker (Development/Testing)
 
 ```bash
-uvicorn lead_scoring.api.app:app --host 0.0.0.0 --port 8000
+# 1. Clone and navigate
+cd /tmp/lead-scoring
+
+# 2. Start services
+docker-compose up -d
+
+# 3. Verify API is running
+curl http://localhost:8000/health
+
+# 4. View Swagger docs
+open http://localhost:8000/docs
+
+# 5. Done! API is running on http://localhost:8000
 ```
 
-Open:
-- `http://127.0.0.1:8000`
-- `http://127.0.0.1:8000/docs`
-
-At `http://127.0.0.1:8000` you now get a lightweight portal UI for:
-- CSV / Excel upload
-- campaign-context CSV upload
-- campaign context setup
-- auto-scoring on import
-- scored output export
-- campaign buying-group report review
-
-Template buttons in the portal:
-- `Lead CSV Template`: downloads a populated example row so the file is easier to edit and re-upload
-- `Campaign CSV Template`: downloads a one-row campaign-context file that can be imported directly into the form
-
-## 4. Score a Lead
+### Option 3: Kubernetes (Production)
 
 ```bash
-curl -X POST http://127.0.0.1:8000/score \
-  -H "Content-Type: application/json" \
-  -d '{
-    "lead": {
-      "lead_id": "ACE-LOCAL-001",
-      "submitted_at": "2026-03-22T10:00:00Z",
-      "source_partner": "partner-alpha",
-      "contact": {
-        "email": "nina.carter@northstarhealth.com",
-        "first_name": "Nina",
-        "last_name": "Carter",
-        "job_title": "VP Clinical Operations"
-      },
-      "company": {
-        "company_name": "Northstar Health",
-        "domain": "northstarhealth.com",
-        "industry": "healthcare",
-        "geography": "United States",
-        "company_size": "1000+"
-      },
-      "campaign": {
-        "campaign_id": "HC-BOFU-2026-01",
-        "client_id": "client-health-01",
-        "campaign_name": "Clinical ROI Acceleration",
-        "brief_text": "Target healthcare provider executives across clinical, finance, and IT teams in the United States.",
-        "asset_name": "Clinical ROI Case Study",
-        "target_profile": {
-          "industries": ["healthcare"],
-          "geographies": ["united states"],
-          "company_sizes": ["enterprise", "1000+"],
-          "job_functions": ["clinical", "finance", "it"],
-          "seniorities": ["executive", "vp", "director"],
-          "required_personas": ["clinical", "finance", "it"]
-        },
-        "taxonomy": {
-          "asset_type": "case study",
-          "topic": "decision",
-          "audience": "late stage shortlist",
-          "volume": "highly targeted",
-          "sequence": "decision",
-          "asset_stage_override": "BOFU",
-          "vertical_override": "healthcare"
-        },
-        "history_approval_rate": 0.77
-      },
-      "partner_signals": {
-        "partner_id": "partner-alpha",
-        "approval_rate_6m": 0.81,
-        "approval_rate_client_6m": 0.79,
-        "approval_rate_vertical_6m": 0.76
-      },
-      "account_signals": {
-        "account_id": "acct-northstar-health",
-        "client_acceptance_rate_6m": 0.74,
-        "recent_personas": [
-          {
-            "lead_id": "ACE-HIST-100",
-            "email": "marta.fin@northstarhealth.com",
-            "full_name": "Marta Fin",
-            "job_title": "Director Finance",
-            "job_function": "finance",
-            "seniority": "director",
-            "status": "approved",
-            "asset_name": "ROI Checklist",
-            "asset_stage": "BOFU",
-            "occurred_at": "2026-03-10T10:00:00Z"
-          }
-        ]
-      },
-      "engagement_events": [
-        {
-          "event_type": "open",
-          "occurred_at": "2026-03-16T10:00:00Z",
-          "asset_name": "Clinical ROI Case Study",
-          "email_number": 1
-        },
-        {
-          "event_type": "download",
-          "occurred_at": "2026-03-21T10:00:00Z",
-          "asset_name": "Clinical ROI Case Study",
-          "email_number": 2
-        }
-      ]
-    }
-  }'
+# 1. Configure kubectl to your cluster
+kubectl config set-context your-cluster-context
+
+# 2. Verify cluster access
+kubectl cluster-info
+
+# 3. Deploy with one command
+kubectl apply -f k8s/
+
+# 4. Monitor deployment
+kubectl get pods -n lead-scoring -w
+
+# 5. Port forward to test
+kubectl port-forward -n lead-scoring svc/lead-scoring-api 8000:80
+
+# 6. Test API
+curl http://localhost:8000/health
 ```
 
-## 5. Preview the Buying Group Signal
+## Pre-Flight Checklist
+
+Before deploying to production:
+
+- [ ] **Secrets Created**
+  ```bash
+  kubectl create secret generic lead-scoring-secrets \
+    --from-literal=DATABASE_URL='your-db-url' \
+    --from-literal=API_KEY_SECRET='your-secret' \
+    -n lead-scoring
+  ```
+
+- [ ] **Database Ready**
+  - PostgreSQL 15+ running and accessible
+  - Database initialized (scripts/init_db.sql applied)
+  - Connection string tested
+
+- [ ] **Configuration Updated**
+  - Edit `k8s/configmap.yaml` with your settings
+  - Edit `k8s/secrets.yaml` with credentials
+  - Review `k8s/deployment.yaml` resource limits
+
+- [ ] **Container Images Built**
+  ```bash
+  docker build -t your-registry/lead-scoring:v1.0.0 .
+  docker push your-registry/lead-scoring:v1.0.0
+  ```
+
+- [ ] **Kubernetes Cluster Ready**
+  - Cluster running 1.27+
+  - 3+ nodes with 2CPU/4GB RAM each
+  - Persistent storage configured
+  - Ingress controller installed (nginx recommended)
+
+- [ ] **Monitoring Setup**
+  - Prometheus installed
+  - Grafana dashboards created
+  - Alert rules configured
+
+## Deployment Steps
+
+### Step 1: Prepare Environment
 
 ```bash
-curl -X POST http://127.0.0.1:8000/buying-group/preview \
-  -H "Content-Type: application/json" \
-  -d @payload.json
+# Copy environment template
+cp .env.example .env.production
+# Edit with production values
+nano .env.production
+
+# Create namespace
+kubectl create namespace lead-scoring
+
+# Create secrets
+kubectl create secret generic lead-scoring-secrets \
+  --from-env-file=.env.production \
+  -n lead-scoring
 ```
 
-## 6. Pull a Campaign Report
-
-Score leads for a campaign first, then:
+### Step 2: Initialize Database
 
 ```bash
-curl http://127.0.0.1:8000/reports/campaign/HC-BOFU-2026-01
+# Apply database initialization
+kubectl apply -f k8s/postgres.yaml
+
+# Wait for PostgreSQL to be ready
+kubectl wait --for=condition=Ready pod \
+  -l app=postgres -n lead-scoring --timeout=300s
+
+# Initialize schema
+kubectl exec postgres-0 -n lead-scoring -- \
+  psql -U lead_user -d lead_scoring_db < scripts/init_db.sql
 ```
 
-## 7. Store the Actual Client Outcome
+### Step 3: Deploy API
 
 ```bash
-curl -X POST http://127.0.0.1:8000/outcomes/label \
-  -H "Content-Type: application/json" \
-  -d '{
-    "lead_id": "ACE-LOCAL-001",
-    "campaign_id": "HC-BOFU-2026-01",
-    "outcome": "approved",
-    "notes": "Client accepted the lead"
-  }'
+# Apply all Kubernetes manifests
+kubectl apply -f k8s/
+
+# Monitor deployment
+kubectl rollout status deployment/lead-scoring-api -n lead-scoring
+
+# Verify pods are running
+kubectl get pods -n lead-scoring
 ```
 
-## 8. Run Monthly Retraining
-
-The retrain job expects a Phase 1/Phase 2 PRD feature table. At minimum it should contain:
-- `status`
-- the runtime feature columns such as `fit_score`, `intent_score`, `partner_signal_score`, `icp_match_score`
-
-Run it from the CLI:
+### Step 4: Verify Deployment
 
 ```bash
-python scripts/run_monthly_retrain.py /absolute/path/to/prd_feature_table.csv
+# Port forward
+kubectl port-forward -n lead-scoring svc/lead-scoring-api 8000:80 &
+
+# Test API
+curl http://localhost:8000/health
+# Expected: {"status": "healthy", "version": "1.0.0"}
+
+# View Swagger docs
+open http://localhost:8000/docs
+
+# Check logs
+kubectl logs -f deployment/lead-scoring-api -n lead-scoring
 ```
 
-Or via API:
+### Step 5: Setup Monitoring
 
 ```bash
-curl -X POST http://127.0.0.1:8000/operations/retrain \
-  -H "Content-Type: application/json" \
-  -d '{
-    "dataset_path": "/absolute/path/to/prd_feature_table.csv",
-    "force_promote": false
-  }'
+# Install Prometheus (optional)
+helm install prometheus prometheus-community/kube-prometheus-stack \
+  --namespace monitoring --create-namespace
+
+# Install Grafana (optional)
+kubectl port-forward -n monitoring svc/prometheus-grafana 3000:80
+
+# Access Grafana at http://localhost:3000
 ```
 
-## 9. Restart After Promotion
-
-If retraining promotes a model, restart the API so the new bundle is loaded:
+## Common Commands
 
 ```bash
-pkill -f "uvicorn lead_scoring.api.app:app"
-uvicorn lead_scoring.api.app:app --host 0.0.0.0 --port 8000
+# View deployment status
+kubectl get deployment -n lead-scoring
+kubectl describe deployment lead-scoring-api -n lead-scoring
+
+# View pods
+kubectl get pods -n lead-scoring
+kubectl logs <pod-name> -n lead-scoring
+
+# Scale deployment
+kubectl scale deployment lead-scoring-api --replicas=5 -n lead-scoring
+
+# Update deployment
+kubectl set image deployment/lead-scoring-api \
+  api=registry/lead-scoring:v1.1.0 -n lead-scoring
+
+# Delete deployment
+kubectl delete namespace lead-scoring
+
+# Port forward for testing
+kubectl port-forward -n lead-scoring svc/lead-scoring-api 8000:80
+
+# SSH into pod
+kubectl exec -it <pod-name> -n lead-scoring -- /bin/bash
 ```
+
+## Troubleshooting
+
+### Pods not starting
+
+```bash
+# Check pod status
+kubectl describe pod <pod-name> -n lead-scoring
+
+# View logs
+kubectl logs <pod-name> -n lead-scoring
+
+# Check events
+kubectl get events -n lead-scoring
+```
+
+### Database connection error
+
+```bash
+# Test connectivity
+kubectl run -it --rm debug --image=postgres:15-alpine \
+  -- psql <DATABASE_URL>
+
+# Check postgres pod
+kubectl logs postgres-0 -n lead-scoring
+
+# Port forward to postgres
+kubectl port-forward -n lead-scoring postgres-0 5432:5432
+psql postgresql://user:password@localhost:5432/lead_scoring_db
+```
+
+### API not responding
+
+```bash
+# Check deployment
+kubectl get deployment lead-scoring-api -n lead-scoring
+kubectl describe deployment lead-scoring-api -n lead-scoring
+
+# View logs
+kubectl logs -f deployment/lead-scoring-api -n lead-scoring
+
+# Check service
+kubectl get svc -n lead-scoring
+kubectl describe svc lead-scoring-api -n lead-scoring
+
+# Port forward and test
+kubectl port-forward -n lead-scoring svc/lead-scoring-api 8000:80
+curl http://localhost:8000/health
+```
+
+## Scaling Guide
+
+### Auto-scaling (Recommended)
+
+HPA automatically scales based on CPU/memory. Check status:
+
+```bash
+kubectl get hpa -n lead-scoring
+kubectl describe hpa lead-scoring-api-hpa -n lead-scoring
+```
+
+### Manual Scaling
+
+```bash
+# Scale to 5 replicas
+kubectl scale deployment lead-scoring-api --replicas=5 -n lead-scoring
+
+# Scale down
+kubectl scale deployment lead-scoring-api --replicas=3 -n lead-scoring
+```
+
+## Performance Tuning
+
+### API Workers
+
+Edit `k8s/configmap.yaml`:
+```yaml
+API_WORKERS: "4"  # Set to 2-4 x CPU cores
+```
+
+### Database Connection Pool
+
+```yaml
+DB_POOL_SIZE: "20"      # Active connections
+DB_MAX_OVERFLOW: "40"   # Max overflow connections
+DB_POOL_TIMEOUT: "30"   # Timeout in seconds
+```
+
+### Resource Limits
+
+Edit `k8s/deployment.yaml`:
+```yaml
+resources:
+  requests:
+    cpu: 500m          # Guaranteed
+    memory: 512Mi
+  limits:
+    cpu: 1000m         # Maximum
+    memory: 1Gi
+```
+
+## Maintenance
+
+### Backup Database
+
+```bash
+kubectl exec postgres-0 -n lead-scoring -- \
+  pg_dump lead_scoring_db > backup.sql
+```
+
+### Restore Database
+
+```bash
+kubectl exec -i postgres-0 -n lead-scoring -- \
+  psql lead_scoring_db < backup.sql
+```
+
+### Update API
+
+```bash
+# Build new image
+docker build -t registry/lead-scoring:v1.1.0 .
+docker push registry/lead-scoring:v1.1.0
+
+# Update deployment
+kubectl set image deployment/lead-scoring-api \
+  api=registry/lead-scoring:v1.1.0 -n lead-scoring
+
+# Monitor rollout
+kubectl rollout status deployment/lead-scoring-api -n lead-scoring
+
+# Rollback if needed
+kubectl rollout undo deployment/lead-scoring-api -n lead-scoring
+```
+
+## Next Steps
+
+1. **Complete Documentation**: See [DEPLOYMENT.md](DEPLOYMENT.md) for full guide
+2. **Setup Monitoring**: Configure Prometheus and Grafana
+3. **Configure Backups**: Setup automated database backups
+4. **Security Hardening**: Review and implement security best practices
+5. **Performance Testing**: Load test at expected scale
+6. **Team Training**: Train ops team on deployment and troubleshooting
+
+## Getting Help
+
+- **Logs**: `kubectl logs -f deployment/lead-scoring-api -n lead-scoring`
+- **Events**: `kubectl get events -n lead-scoring`
+- **Status**: `kubectl describe deployment lead-scoring-api -n lead-scoring`
+- **Documentation**: See [DEPLOYMENT.md](DEPLOYMENT.md)
+
+---
+
+**Deployment complete!** Your Lead Scoring API is now running in production. 🚀
