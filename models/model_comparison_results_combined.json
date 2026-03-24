@@ -1,0 +1,49 @@
+{
+  "source": "Combined: Original CSV + Latest_leads_data + Buying_stage",
+  "total_samples": 7613,
+  "train_samples": 6090,
+  "test_samples": 1523,
+  "features": 43,
+  "data_sources": {
+    "original_csv": 613,
+    "latest_leads": 4000,
+    "buying_stage": 3000
+  },
+  "target_range": "53.0 - 100.0",
+  "target_mean": 81.65865887298042,
+  "baseline_r2": 0.5924,
+  "results": {
+    "RandomForest": {
+      "r2": 0.9997429764179114,
+      "cv_r2": 0.9996617982040931
+    },
+    "GradientBoosting": {
+      "r2": 0.9999079210809235,
+      "cv_r2": 0.9997701564378554
+    },
+    "ExtraTrees": {
+      "r2": 0.9938662712594996,
+      "cv_r2": 0.9950011267046339
+    },
+    "Bagging": {
+      "r2": 0.9995487699160153,
+      "cv_r2": 0.9995317691732936
+    },
+    "SVR": {
+      "r2": 0.9995592411959173,
+      "cv_r2": 0.9991729779721835
+    },
+    "NeuralNetwork": {
+      "r2": 0.9849218456550916,
+      "cv_r2": 0.7511282780555377
+    },
+    "XGBoost": {
+      "r2": 0.9999157737621288,
+      "cv_r2": 0.9998050709405752
+    },
+    "Ensemble": {
+      "r2": 0.9995473847907161,
+      "cv_r2": 0.9995203121098297
+    }
+  }
+}

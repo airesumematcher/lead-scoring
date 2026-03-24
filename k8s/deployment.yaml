@@ -1,0 +1,199 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lead-scoring-api
+  namespace: lead-scoring
+  labels:
+    app: lead-scoring-api
+    version: v1
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: lead-scoring-api
+  template:
+    metadata:
+      labels:
+        app: lead-scoring-api
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: lead-scoring-api
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+      - name: api
+        image: lead-scoring:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        - containerPort: 9090
+          name: metrics
+          protocol: TCP
+
+        env:
+        # Environment from ConfigMap
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: lead-scoring-config
+              key: LOG_LEVEL
+        - name: APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: lead-scoring-config
+              key: APP_ENV
+        - name: PYTHONUNBUFFERED
+          valueFrom:
+            configMapKeyRef:
+              name: lead-scoring-config
+              key: PYTHONUNBUFFERED
+        - name: PYTHONDONTWRITEBYTECODE
+          valueFrom:
+            configMapKeyRef:
+              name: lead-scoring-config
+              key: PYTHONDONTWRITEBYTECODE
+        - name: API_WORKERS
+          valueFrom:
+            configMapKeyRef:
+              name: lead-scoring-config
+              key: API_WORKERS
+        - name: DB_POOL_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: lead-scoring-config
+              key: DB_POOL_SIZE
+        - name: DB_MAX_OVERFLOW
+          valueFrom:
+            configMapKeyRef:
+              name: lead-scoring-config
+              key: DB_MAX_OVERFLOW
+        - name: ENABLE_METRICS
+          valueFrom:
+            configMapKeyRef:
+              name: lead-scoring-config
+              key: ENABLE_METRICS
+
+        # Secrets
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: lead-scoring-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: lead-scoring-secrets
+              key: REDIS_URL
+        - name: API_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: lead-scoring-secrets
+              key: API_KEY_SECRET
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: lead-scoring-secrets
+              key: JWT_SECRET
+
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: logs
+          mountPath: /app/logs
+
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - lead-scoring-api
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: lead-scoring-api
+  namespace: lead-scoring
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lead-scoring-api
+  namespace: lead-scoring
+  labels:
+    app: lead-scoring-api
+spec:
+  type: LoadBalancer
+  selector:
+    app: lead-scoring-api
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  - port: 9090
+    targetPort: 9090
+    protocol: TCP
+    name: metrics
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800

@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACE Lead Upload Portal</title>
+    <style>
+      :root {
+        --ink: #17212d;
+        --muted: #5b6777;
+        --paper: #f3ede3;
+        --panel: rgba(255, 255, 255, 0.82);
+        --panel-strong: rgba(255, 255, 255, 0.94);
+        --line: rgba(23, 33, 45, 0.1);
+        --accent: #ba4b26;
+        --accent-dark: #8f3116;
+        --teal: #0f7a6b;
+        --gold: #c78a2c;
+        --danger: #b63a3a;
+        --shadow: 0 28px 80px rgba(23, 33, 45, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: "Avenir Next", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at top left, rgba(186, 75, 38, 0.18), transparent 34%),
+          radial-gradient(circle at bottom right, rgba(15, 122, 107, 0.12), transparent 28%),
+          linear-gradient(135deg, #f8f2ea 0%, #efe1cc 48%, #f6f3ed 100%);
+      }
+
+      .shell {
+        max-width: 1380px;
+        margin: 0 auto;
+        padding: 32px 20px 56px;
+      }
+
+      .masthead {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 22px;
+        margin-bottom: 22px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero {
+        padding: 32px 34px;
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: var(--accent-dark);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+        font-size: clamp(2.7rem, 4vw, 5rem);
+        line-height: 0.95;
+      }
+
+      .lede {
+        max-width: 45rem;
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.7;
+        font-size: 1.04rem;
+      }
+
+      .meta-grid,
+      .stats-grid,
+      .report-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .meta-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin-top: 24px;
+      }
+
+      .meta-card,
+      .stat-card,
+      .report-card {
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(23, 33, 45, 0.07);
+        border-radius: 22px;
+        padding: 16px 18px;
+      }
+
+      .meta-card strong,
+      .stat-card strong,
+      .report-card strong {
+        display: block;
+        font-size: 0.93rem;
+        margin-bottom: 6px;
+      }
+
+      .meta-card span,
+      .stat-card span,
+      .report-card span {
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 0.95rem;
+      }
+
+      .system-panel {
+        padding: 28px;
+        display: grid;
+        gap: 16px;
+        align-content: start;
+      }
+
+      .system-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .system-item {
+        padding: 16px 18px;
+        border-radius: 22px;
+        background: rgba(23, 33, 45, 0.04);
+        border: 1px solid rgba(23, 33, 45, 0.08);
+      }
+
+      .system-item p,
+      .copy,
+      .helper,
+      .muted {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 22px;
+        margin-bottom: 22px;
+      }
+
+      .uploader,
+      .configurator,
+      .results,
+      .reporting {
+        padding: 28px;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .section-head h2 {
+        margin: 0 0 4px;
+        font-size: 1.26rem;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 0.86rem;
+        font-weight: 700;
+        background: rgba(15, 122, 107, 0.12);
+        color: var(--teal);
+      }
+
+      .pill.danger {
+        background: rgba(182, 58, 58, 0.12);
+        color: var(--danger);
+      }
+
+      .pill.warn {
+        background: rgba(199, 138, 44, 0.14);
+        color: var(--gold);
+      }
+
+      .dropzone {
+        position: relative;
+        border: 1.5px dashed rgba(186, 75, 38, 0.34);
+        border-radius: 26px;
+        background:
+          linear-gradient(135deg, rgba(186, 75, 38, 0.07), rgba(255, 255, 255, 0.72)),
+          rgba(255, 255, 255, 0.88);
+        padding: 28px;
+        text-align: center;
+        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      }
+
+      .dropzone.dragging {
+        transform: translateY(-2px);
+        border-color: var(--accent);
+        background:
+          linear-gradient(135deg, rgba(186, 75, 38, 0.12), rgba(255, 255, 255, 0.9)),
+          rgba(255, 255, 255, 0.96);
+      }
+
+      .dropzone input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .dropzone h3 {
+        margin: 0 0 8px;
+        font-size: 1.34rem;
+      }
+
+      .dropzone p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .button-row,
+      .inline-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .button-row {
+        margin-top: 18px;
+      }
+
+      button,
+      .ghost-link {
+        appearance: none;
+        border: 0;
+        border-radius: 999px;
+        padding: 12px 18px;
+        font: inherit;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      }
+
+      button:hover,
+      .ghost-link:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        color: #fff9f3;
+        box-shadow: 0 14px 26px rgba(186, 75, 38, 0.22);
+      }
+
+      .secondary {
+        background: rgba(23, 33, 45, 0.08);
+        color: var(--ink);
+      }
+
+      .ghost-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--ink);
+        border: 1px solid rgba(23, 33, 45, 0.09);
+      }
+
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(23, 33, 45, 0.08);
+      }
+
+      .toggle input {
+        width: 18px;
+        height: 18px;
+      }
+
+      .upload-status,
+      .preview,
+      .results-table-wrap,
+      .report-table-wrap {
+        margin-top: 18px;
+      }
+
+      .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .preview-box {
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(23, 33, 45, 0.04);
+        border: 1px solid rgba(23, 33, 45, 0.08);
+      }
+
+      .preview-box strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 0.93rem;
+        font-weight: 700;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        border: 1px solid rgba(23, 33, 45, 0.1);
+        border-radius: 16px;
+        padding: 12px 14px;
+        font: inherit;
+        color: var(--ink);
+        background: var(--panel-strong);
+      }
+
+      textarea {
+        min-height: 124px;
+        resize: vertical;
+      }
+
+      details {
+        margin-top: 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(23, 33, 45, 0.08);
+        background: rgba(255, 255, 255, 0.58);
+        overflow: hidden;
+      }
+
+      summary {
+        cursor: pointer;
+        padding: 14px 16px;
+        font-weight: 700;
+      }
+
+      details .details-body {
+        padding: 0 16px 16px;
+      }
+
+      code,
+      .mono {
+        font-family: "SFMono-Regular", "Menlo", monospace;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .report-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(23, 33, 45, 0.08);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      tbody tr:hover {
+        background: rgba(23, 33, 45, 0.03);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+      }
+
+      .badge.deliver,
+      .badge.priority {
+        background: rgba(15, 122, 107, 0.12);
+        color: var(--teal);
+      }
+
+      .badge.review,
+      .badge.nurture {
+        background: rgba(199, 138, 44, 0.14);
+        color: var(--gold);
+      }
+
+      .badge.hold,
+      .badge.monitor {
+        background: rgba(182, 58, 58, 0.12);
+        color: var(--danger);
+      }
+
+      .badge.champion {
+        background: rgba(43, 92, 160, 0.12);
+        color: #2b5ca0;
+      }
+
+      .empty-state {
+        padding: 28px;
+        border-radius: 24px;
+        border: 1px dashed rgba(23, 33, 45, 0.16);
+        color: var(--muted);
+        text-align: center;
+        background: rgba(255, 255, 255, 0.54);
+      }
+
+      .footnote {
+        margin-top: 16px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      @media (max-width: 1180px) {
+        .masthead,
+        .workspace,
+        .stats-grid,
+        .report-grid,
+        .meta-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .field-grid,
+        .preview-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .shell {
+          padding: 18px 14px 36px;
+        }
+
+        .hero,
+        .system-panel,
+        .uploader,
+        .configurator,
+        .results,
+        .reporting {
+          padding: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="masthead">
+        <article class="panel hero">
+          <p class="eyebrow">Lead Intake Portal</p>
+          <h1>Upload Leads. Trigger Scoring. Send Action Back.</h1>
+          <p class="lede">
+            This lightweight portal sits on top of the ACE APIs. Import a CSV,
+            apply shared campaign metadata, trigger scoring automatically, and
+            return a scored lead file with delivery actions, quadrants, reasons,
+            and buying-group visibility.
+          </p>
+          <div class="meta-grid">
+            <div class="meta-card">
+              <strong>Upload Trigger</strong>
+              <span>CSV or Excel import can auto-start batch scoring as soon as the file reaches the portal API.</span>
+            </div>
+            <div class="meta-card">
+              <strong>Output Ready</strong>
+              <span>Download a scored export with delivery decisions, quadrants, and top reasons.</span>
+            </div>
+            <div class="meta-card">
+              <strong>Buying Group</strong>
+              <span>After scoring, the portal pulls the persisted campaign report automatically.</span>
+            </div>
+          </div>
+        </article>
+
+        <aside class="panel system-panel">
+          <div class="section-head">
+            <div>
+              <h2>System Status</h2>
+              <p class="helper">Live health and runtime mode from the API.</p>
+            </div>
+            <span id="healthPill" class="pill warn">Checking</span>
+          </div>
+          <div class="system-list">
+            <div class="system-item">
+              <strong>API Base</strong>
+              <p class="copy mono" id="apiBaseValue">/</p>
+            </div>
+            <div class="system-item">
+              <strong>Runtime</strong>
+              <p class="copy" id="runtimeValue">Loading...</p>
+            </div>
+            <div class="system-item">
+              <strong>Recommended Portal Flow</strong>
+              <p class="copy">Set campaign context once, upload a lead CSV, auto-score, review the batch, then export the result file.</p>
+            </div>
+          </div>
+          <div class="inline-actions">
+            <a class="ghost-link" href="/docs" target="_blank" rel="noreferrer">Open API Docs</a>
+            <button id="downloadLeadTemplateButton" class="secondary" type="button">Lead CSV Template</button>
+            <button id="downloadCampaignTemplateButton" class="secondary" type="button">Campaign CSV Template</button>
+          </div>
+        </aside>
+      </section>
+
+      <section class="workspace">
+        <section class="panel uploader">
+          <div class="section-head">
+            <div>
+              <h2>1. Import Leads</h2>
+              <p class="helper">Upload a CSV or Excel file from the portal source. The backend will interpret the headers, map required fields, and trigger scoring.</p>
+            </div>
+            <span id="importPill" class="pill warn">Waiting for file</span>
+          </div>
+
+          <div id="dropzone" class="dropzone">
+            <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.xlsm,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+            <h3>Drop a lead file here</h3>
+            <p>Or click to browse. CSV and Excel are supported. The portal interprets required fields from the uploaded headers.</p>
+          </div>
+
+          <div class="button-row">
+            <label class="toggle">
+              <input id="autoScoreToggle" type="checkbox" checked />
+              <span>Auto-score immediately after import</span>
+            </label>
+            <button id="scoreButton" class="primary" type="button" disabled>Score Uploaded Leads</button>
+            <button id="exportButton" class="secondary" type="button" disabled>Download Scored Output</button>
+          </div>
+
+          <div class="upload-status">
+            <p id="statusMessage" class="muted">No file loaded yet.</p>
+          </div>
+
+          <div class="preview">
+            <div class="preview-grid">
+              <div class="preview-box">
+                <strong>Imported Rows</strong>
+                <span id="previewRows">0</span>
+              </div>
+              <div class="preview-box">
+                <strong>Header Mapping</strong>
+                <span id="previewColumns">Not checked</span>
+              </div>
+              <div class="preview-box">
+                <strong>Last Action</strong>
+                <span id="previewAction">Awaiting import</span>
+              </div>
+            </div>
+          </div>
+
+          <details>
+            <summary>Supported CSV columns</summary>
+            <div class="details-body">
+              <p class="helper">
+                Required: <code>email</code>, <code>first_name</code>, <code>last_name</code>, <code>job_title</code>, <code>company_name</code>, <code>domain</code>, <code>industry</code>, <code>geography</code>.
+              </p>
+              <p class="helper">
+                Optional: <code>lead_id</code>, <code>submitted_at</code>, <code>company_size</code>, <code>source_partner</code>, <code>partner_id</code>, <code>approval_rate_6m</code>, <code>approval_rate_client_6m</code>, <code>approval_rate_vertical_6m</code>, <code>client_acceptance_rate_6m</code>, <code>email1_opened</code>, <code>email1_clicked</code>, <code>email2_opened</code>, <code>email2_clicked</code>, <code>download_count</code>, <code>visit_count</code>. Header variants such as <code>Email Address</code>, <code>First Name</code>, <code>Company</code>, or <code>Website</code> are interpreted automatically.
+              </p>
+            </div>
+          </details>
+        </section>
+
+        <section class="panel configurator">
+          <div class="section-head">
+            <div>
+              <h2>2. Campaign Context</h2>
+              <p class="helper">These values are applied across the imported lead file before the portal calls the APIs. You can also load them from a one-row campaign CSV.</p>
+            </div>
+          </div>
+
+          <input id="campaignFileInput" type="file" accept=".csv,text/csv" hidden />
+          <div class="button-row" style="margin-top: 0; margin-bottom: 18px;">
+            <button id="loadCampaignCsvButton" class="secondary" type="button">Upload Campaign Context CSV</button>
+            <button id="resetCampaignButton" class="secondary" type="button">Reset Campaign Fields</button>
+          </div>
+          <p id="campaignStatusMessage" class="muted">Using the values currently shown in the form.</p>
+
+          <form id="campaignForm" class="field-grid">
+            <label>
+              Client ID
+              <input name="client_id" value="client-health-01" required />
+            </label>
+            <label>
+              Campaign ID
+              <input name="campaign_id" value="HC-BOFU-2026-01" required />
+            </label>
+            <label>
+              Campaign Name
+              <input name="campaign_name" value="Clinical ROI Acceleration" required />
+            </label>
+            <label>
+              Asset Name
+              <input name="asset_name" value="Clinical ROI Case Study" required />
+            </label>
+            <label>
+              Asset Type
+              <input name="asset_type" value="case study" />
+            </label>
+            <label>
+              Funnel Stage Override
+              <select name="asset_stage_override">
+                <option value="BOFU" selected>BOFU</option>
+                <option value="MOFU">MOFU</option>
+                <option value="TOFU">TOFU</option>
+              </select>
+            </label>
+            <label>
+              Topic
+              <input name="topic" value="decision" />
+            </label>
+            <label>
+              Audience
+              <input name="audience" value="late stage shortlist" />
+            </label>
+            <label>
+              Volume
+              <input name="volume" value="highly targeted" />
+            </label>
+            <label>
+              Sequence
+              <input name="sequence" value="decision" />
+            </label>
+            <label>
+              Vertical Override
+              <input name="vertical_override" value="healthcare" />
+            </label>
+            <label>
+              Campaign Approval Rate
+              <input name="history_approval_rate" type="number" min="0" max="1" step="0.01" value="0.77" />
+            </label>
+            <label>
+              Default Partner ID
+              <input name="partner_id" value="partner-alpha" />
+            </label>
+            <label>
+              Default Partner Approval Rate
+              <input name="approval_rate_6m" type="number" min="0" max="1" step="0.01" value="0.81" />
+            </label>
+            <label>
+              Default Client Approval Rate
+              <input name="approval_rate_client_6m" type="number" min="0" max="1" step="0.01" value="0.79" />
+            </label>
+            <label>
+              Default Vertical Approval Rate
+              <input name="approval_rate_vertical_6m" type="number" min="0" max="1" step="0.01" value="0.76" />
+            </label>
+            <label>
+              Default Account Acceptance Rate
+              <input name="client_acceptance_rate_6m" type="number" min="0" max="1" step="0.01" value="0.74" />
+            </label>
+            <label style="grid-column: 1 / -1;">
+              Brief Text
+              <textarea name="brief_text">Target healthcare provider executives across clinical, finance, and IT teams in the United States. Prioritize enterprise hospitals evaluating ROI and implementation readiness.</textarea>
+            </label>
+          </form>
+        </section>
+      </section>
+
+      <section class="stats-grid">
+        <article class="panel results stat-card">
+          <strong>Total Scored</strong>
+          <span id="statTotal">0</span>
+        </article>
+        <article class="panel results stat-card">
+          <strong>Deliver</strong>
+          <span id="statDeliver">0</span>
+        </article>
+        <article class="panel results stat-card">
+          <strong>Review / Hold</strong>
+          <span id="statReviewHold">0</span>
+        </article>
+        <article class="panel results stat-card">
+          <strong>Average Score</strong>
+          <span id="statAverage">0</span>
+        </article>
+      </section>
+
+      <section class="report-grid" style="margin-top: 22px;">
+        <article class="panel reporting report-card">
+          <strong>Accounts in Campaign</strong>
+          <span id="reportAccounts">0</span>
+        </article>
+        <article class="panel reporting report-card">
+          <strong>Accounts with BDR Trigger</strong>
+          <span id="reportTriggers">0</span>
+        </article>
+        <article class="panel reporting report-card">
+          <strong>Portal Status</strong>
+          <span id="reportStatus">No scored batch yet.</span>
+        </article>
+      </section>
+
+      <section class="panel results" style="margin-top: 22px;">
+        <div class="section-head">
+          <div>
+            <h2>3. Scored Output</h2>
+            <p class="helper">Immediate output from the batch scoring API. Use this as the review table before export.</p>
+          </div>
+        </div>
+        <div id="resultsEmpty" class="empty-state">
+          Import a CSV to see scored leads, delivery actions, quadrants, and plain-English reasons.
+        </div>
+        <div id="resultsTableWrap" class="results-table-wrap" hidden>
+          <table id="resultsTable">
+            <thead>
+              <tr>
+                <th>Lead</th>
+                <th>Company</th>
+                <th>Decision</th>
+                <th>Score</th>
+                <th>Quadrant</th>
+                <th>Reasons</th>
+                <th>Buying Group</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel reporting" style="margin-top: 22px;">
+        <div class="section-head">
+          <div>
+            <h2>4. Campaign Buying-Group Report</h2>
+            <p class="helper">Pulled automatically after scoring from the persisted campaign report endpoint.</p>
+          </div>
+        </div>
+        <div id="reportEmpty" class="empty-state">
+          Score a batch to populate the campaign-level account report.
+        </div>
+        <div id="reportTableWrap" class="report-table-wrap" hidden>
+          <table id="reportTable">
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Personas</th>
+                <th>Completeness</th>
+                <th>Functions</th>
+                <th>Stage</th>
+                <th>BDR Trigger</th>
+                <th>Missing</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="footnote">
+          Portal behavior: import leads, call <code>/score/batch</code>, then call <code>/reports/campaign/{campaign_id}</code>, and finally return a downloadable scored file to the operator.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        uploadedFile: null,
+        uploadedFileName: "",
+        leadLookup: new Map(),
+        batchResults: null,
+        campaignReport: null,
+      };
+
+      const refs = {
+        dropzone: document.getElementById("dropzone"),
+        fileInput: document.getElementById("fileInput"),
+        campaignFileInput: document.getElementById("campaignFileInput"),
+        autoScoreToggle: document.getElementById("autoScoreToggle"),
+        scoreButton: document.getElementById("scoreButton"),
+        exportButton: document.getElementById("exportButton"),
+        loadCampaignCsvButton: document.getElementById("loadCampaignCsvButton"),
+        resetCampaignButton: document.getElementById("resetCampaignButton"),
+        downloadLeadTemplateButton: document.getElementById("downloadLeadTemplateButton"),
+        downloadCampaignTemplateButton: document.getElementById("downloadCampaignTemplateButton"),
+        campaignForm: document.getElementById("campaignForm"),
+        campaignStatusMessage: document.getElementById("campaignStatusMessage"),
+        healthPill: document.getElementById("healthPill"),
+        runtimeValue: document.getElementById("runtimeValue"),
+        apiBaseValue: document.getElementById("apiBaseValue"),
+        importPill: document.getElementById("importPill"),
+        statusMessage: document.getElementById("statusMessage"),
+        previewRows: document.getElementById("previewRows"),
+        previewColumns: document.getElementById("previewColumns"),
+        previewAction: document.getElementById("previewAction"),
+        statTotal: document.getElementById("statTotal"),
+        statDeliver: document.getElementById("statDeliver"),
+        statReviewHold: document.getElementById("statReviewHold"),
+        statAverage: document.getElementById("statAverage"),
+        reportAccounts: document.getElementById("reportAccounts"),
+        reportTriggers: document.getElementById("reportTriggers"),
+        reportStatus: document.getElementById("reportStatus"),
+        resultsEmpty: document.getElementById("resultsEmpty"),
+        resultsTableWrap: document.getElementById("resultsTableWrap"),
+        resultsTableBody: document.querySelector("#resultsTable tbody"),
+        reportEmpty: document.getElementById("reportEmpty"),
+        reportTableWrap: document.getElementById("reportTableWrap"),
+        reportTableBody: document.querySelector("#reportTable tbody"),
+      };
+
+      initialize();
+
+      async function initialize() {
+        refs.apiBaseValue.textContent = window.location.origin;
+        bindUploadEvents();
+        refs.scoreButton.addEventListener("click", scoreImportedLeads);
+        refs.exportButton.addEventListener("click", downloadScoredOutput);
+        refs.loadCampaignCsvButton.addEventListener("click", () => refs.campaignFileInput.click());
+        refs.resetCampaignButton.addEventListener("click", resetCampaignForm);
+        refs.downloadLeadTemplateButton.addEventListener("click", downloadLeadTemplate);
+        refs.downloadCampaignTemplateButton.addEventListener("click", downloadCampaignTemplate);
+        refs.campaignFileInput.addEventListener("change", async (event) => {
+          const [file] = event.target.files || [];
+          if (file) {
+            await handleCampaignFile(file);
+          }
+        });
+        await fetchHealth();
+      }
+
+      function bindUploadEvents() {
+        refs.fileInput.addEventListener("change", async (event) => {
+          const [file] = event.target.files || [];
+          if (file) {
+            await handleFile(file);
+          }
+        });
+
+        ["dragenter", "dragover"].forEach((eventName) => {
+          refs.dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            refs.dropzone.classList.add("dragging");
+          });
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+          refs.dropzone.addEventListener(eventName, (event) => {
+            event.preventDefault();
+            refs.dropzone.classList.remove("dragging");
+          });
+        });
+
+        refs.dropzone.addEventListener("drop", async (event) => {
+          const [file] = event.dataTransfer?.files || [];
+          if (file) {
+            refs.fileInput.files = event.dataTransfer.files;
+            await handleFile(file);
+          }
+        });
+      }
+
+      async function fetchHealth() {
+        try {
+          const response = await fetch("/health");
+          const payload = await response.json();
+          refs.healthPill.textContent = payload.status === "healthy" ? "API Healthy" : "API Check";
+          refs.healthPill.className = payload.status === "healthy" ? "pill" : "pill warn";
+          refs.runtimeValue.textContent = `${payload.architecture} / ${payload.runtime_model}`;
+        } catch (error) {
+          refs.healthPill.textContent = "API Offline";
+          refs.healthPill.className = "pill danger";
+          refs.runtimeValue.textContent = "Unable to reach /health";
+        }
+      }
+
+      async function handleFile(file) {
+        state.uploadedFile = file;
+        state.uploadedFileName = file.name;
+        refs.scoreButton.disabled = false;
+        refs.exportButton.disabled = true;
+        refs.previewRows.textContent = "Pending";
+        refs.previewColumns.textContent = "Will be interpreted by the backend";
+        refs.previewAction.textContent = refs.autoScoreToggle.checked ? "Auto-score queued" : "Ready for manual scoring";
+        refs.importPill.textContent = "File loaded";
+        refs.importPill.className = "pill";
+        setPortalStatus(`Loaded ${file.name}.`, "ready");
+        try {
+          if (refs.autoScoreToggle.checked) {
+            await scoreImportedLeads();
+          }
+        } catch (error) {
+          setPortalStatus(error.message || "Unable to parse the uploaded file.", "danger");
+          refs.importPill.textContent = "Import failed";
+          refs.importPill.className = "pill danger";
+        }
+      }
+
+      async function handleCampaignFile(file) {
+        try {
+          const text = await file.text();
+          const campaignValues = campaignCsvToObject(text);
+          const entries = Object.entries(campaignValues);
+          if (!entries.length) {
+            throw new Error("The campaign context CSV did not contain any readable values.");
+          }
+
+          let appliedCount = 0;
+          entries.forEach(([key, value]) => {
+            const field = refs.campaignForm.querySelector(`[name="${cssEscape(key)}"]`);
+            if (field) {
+              field.value = value;
+              appliedCount += 1;
+            }
+          });
+
+          refs.campaignStatusMessage.textContent = `Loaded ${appliedCount} campaign field${appliedCount === 1 ? "" : "s"} from ${file.name}.`;
+        } catch (error) {
+          refs.campaignStatusMessage.textContent = error.message || "Unable to import the campaign context CSV.";
+        }
+      }
+
+      async function scoreImportedLeads() {
+        if (!state.uploadedFile) {
+          setPortalStatus("Upload a CSV or Excel file before scoring.", "danger");
+          return;
+        }
+
+        const formData = new FormData(refs.campaignForm);
+        const campaignConfig = Object.fromEntries(formData.entries());
+        refs.scoreButton.disabled = true;
+        setPortalStatus(`Uploading ${state.uploadedFileName || "lead file"} for scoring...`, "warn");
+        refs.previewAction.textContent = "Calling /portal/import-score";
+
+        try {
+          const payload = new FormData();
+          payload.append("file", state.uploadedFile, state.uploadedFile.name);
+          payload.append("campaign_context", JSON.stringify(campaignConfig));
+          const response = await fetch("/portal/import-score", {
+            method: "POST",
+            body: payload,
+          });
+          if (!response.ok) {
+            const errorPayload = await safeJson(response);
+            throw new Error(errorPayload?.detail || "Batch scoring failed.");
+          }
+
+          const responsePayload = await response.json();
+          state.batchResults = responsePayload.batch_result;
+          state.campaignReport = responsePayload.campaign_report;
+          state.leadLookup = new Map(
+            (responsePayload.imported_leads || []).map((lead) => [
+              lead.lead_id,
+              {
+                company: {
+                  company_name: lead.company_name,
+                  domain: lead.domain,
+                },
+              },
+            ])
+          );
+          refs.previewRows.textContent = String(responsePayload.total_rows || 0);
+          refs.previewColumns.textContent = Object.keys(responsePayload.interpreted_headers || {}).length
+            ? Object.entries(responsePayload.interpreted_headers)
+                .map(([field, source]) => `${field} <- ${source}`)
+                .slice(0, 4)
+                .join(" | ")
+            : "No header mappings returned";
+          refs.previewAction.textContent = `${responsePayload.detected_format.toUpperCase()} imported and scored`;
+          renderBatchResults(responsePayload.batch_result);
+          renderCampaignReport(responsePayload.campaign_report);
+          refs.exportButton.disabled = false;
+          const warningText = (responsePayload.warnings || []).length
+            ? ` Warnings: ${responsePayload.warnings.join(" ")}`
+            : "";
+          setPortalStatus(
+            `Scored ${responsePayload.batch_result.scored_leads} leads successfully from ${responsePayload.filename}.${warningText}`,
+            "ready"
+          );
+        } catch (error) {
+          setPortalStatus(error.message || "Scoring failed.", "danger");
+        } finally {
+          refs.scoreButton.disabled = false;
+        }
+      }
+
+      function renderBatchResults(payload) {
+        const results = payload.results || [];
+        const deliverCount = results.filter((item) => item.delivery_decision === "deliver").length;
+        const holdOrReview = results.length - deliverCount;
+        const averageScore = results.length
+          ? Math.round(results.reduce((sum, item) => sum + item.approval_score, 0) / results.length)
+          : 0;
+
+        refs.statTotal.textContent = String(results.length);
+        refs.statDeliver.textContent = String(deliverCount);
+        refs.statReviewHold.textContent = String(holdOrReview);
+        refs.statAverage.textContent = String(averageScore);
+        refs.resultsEmpty.hidden = results.length > 0;
+        refs.resultsTableWrap.hidden = results.length === 0;
+        refs.resultsTableBody.innerHTML = "";
+
+        results.forEach((item) => {
+          const original = state.leadLookup.get(item.lead_id);
+          const row = document.createElement("tr");
+          const reasons = (item.top_reasons || []).map((reason) => reason.message).join(" ");
+          row.innerHTML = `
+            <td>
+              <strong>${item.lead_id}</strong>
+              <div class="muted">${item.predicted_outcome}</div>
+            </td>
+            <td>
+              <strong>${escapeHtml(original?.company?.company_name || "Unknown company")}</strong>
+              <div class="muted">${escapeHtml(original?.company?.domain || "")}</div>
+            </td>
+            <td><span class="badge ${item.delivery_decision}">${item.delivery_decision}</span></td>
+            <td>
+              <strong>${item.approval_score}</strong>
+              <div class="muted">${item.campaign_mode}</div>
+            </td>
+            <td><span class="badge ${item.quadrant.toLowerCase()}">${item.quadrant}</span></td>
+            <td>${escapeHtml(reasons)}</td>
+            <td>
+              <strong>${item.buying_group.unique_persona_count} personas</strong>
+              <div class="muted">Trigger: ${item.buying_group.bdr_trigger ? "Yes" : "No"}</div>
+            </td>
+          `;
+          refs.resultsTableBody.appendChild(row);
+        });
+      }
+
+      function renderCampaignReport(report) {
+        refs.reportAccounts.textContent = String(report.total_accounts || 0);
+        refs.reportTriggers.textContent = String(report.accounts_with_bdr_trigger || 0);
+        refs.reportStatus.textContent = report.total_accounts
+          ? "Campaign report refreshed from persisted score audits."
+          : "No campaign report rows yet.";
+        refs.reportEmpty.hidden = (report.report_items || []).length > 0;
+        refs.reportTableWrap.hidden = (report.report_items || []).length === 0;
+        refs.reportTableBody.innerHTML = "";
+
+        (report.report_items || []).forEach((item) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${escapeHtml(item.account_domain)}</td>
+            <td>${item.unique_persona_count}</td>
+            <td>${item.persona_completeness_score}%</td>
+            <td>${escapeHtml((item.function_coverage || []).join(", "))}</td>
+            <td>${item.journey_stage_reached}</td>
+            <td>${item.bdr_trigger ? "<span class='badge deliver'>Yes</span>" : "<span class='badge hold'>No</span>"}</td>
+            <td>${escapeHtml((item.missing_personas || []).join(", ") || "None")}</td>
+          `;
+          refs.reportTableBody.appendChild(row);
+        });
+      }
+
+      function downloadScoredOutput() {
+        if (!state.batchResults?.results?.length) {
+          setPortalStatus("There is no scored output to download yet.", "danger");
+          return;
+        }
+
+        const rows = state.batchResults.results.map((item) => {
+          const lead = state.leadLookup.get(item.lead_id);
+          return {
+            lead_id: item.lead_id,
+            company_name: lead?.company?.company_name || "",
+            domain: lead?.company?.domain || "",
+            approval_score: item.approval_score,
+            predicted_outcome: item.predicted_outcome,
+            delivery_decision: item.delivery_decision,
+            quadrant: item.quadrant,
+            campaign_mode: item.campaign_mode,
+            buying_group_score: item.buying_group.buying_group_score,
+            bdr_trigger: item.buying_group.bdr_trigger,
+            top_reason_1: item.top_reasons?.[0]?.message || "",
+            top_reason_2: item.top_reasons?.[1]?.message || "",
+            top_reason_3: item.top_reasons?.[2]?.message || "",
+          };
+        });
+
+        downloadCsv("ace_scored_output.csv", rows);
+      }
+
+      function csvToObjects(text) {
+        const cleanedText = String(text || "").replace(/^\uFEFF/, "").trim();
+        const rows = parseCsv(cleanedText);
+        if (!rows.length) {
+          return { headers: [], rows: [] };
+        }
+        const headers = rows[0].map((value) => normaliseHeader(value));
+        const objects = rows
+          .slice(1)
+          .filter((row) => row.some((cell) => String(cell || "").trim()))
+          .map((row) => {
+            const item = {};
+            headers.forEach((header, index) => {
+              item[header] = (row[index] || "").trim();
+            });
+            return item;
+          });
+        return { headers, rows: objects };
+      }
+
+      function campaignCsvToObject(text) {
+        const parsed = csvToObjects(text);
+        const headers = parsed.headers || [];
+        const rows = parsed.rows || [];
+        if (!rows.length) {
+          return {};
+        }
+
+        const fieldColumn = headers.find((header) => ["field", "key", "name"].includes(header));
+        const valueColumn = headers.find((header) => header === "value");
+        if (fieldColumn && valueColumn) {
+          return rows.reduce((accumulator, row) => {
+            const key = normaliseHeader(row[fieldColumn]);
+            if (key) {
+              accumulator[key] = row[valueColumn] || "";
+            }
+            return accumulator;
+          }, {});
+        }
+
+        return rows[0];
+      }
+
+      function parseCsv(text) {
+        const rows = [];
+        let row = [];
+        let cell = "";
+        let inQuotes = false;
+
+        for (let index = 0; index < text.length; index += 1) {
+          const char = text[index];
+          const nextChar = text[index + 1];
+
+          if (char === "\"") {
+            if (inQuotes && nextChar === "\"") {
+              cell += "\"";
+              index += 1;
+            } else {
+              inQuotes = !inQuotes;
+            }
+            continue;
+          }
+
+          if (char === "," && !inQuotes) {
+            row.push(cell);
+            cell = "";
+            continue;
+          }
+
+          if ((char === "\n" || char === "\r") && !inQuotes) {
+            if (char === "\r" && nextChar === "\n") {
+              index += 1;
+            }
+            row.push(cell);
+            rows.push(row);
+            row = [];
+            cell = "";
+            continue;
+          }
+
+          cell += char;
+        }
+
+        if (cell.length || row.length) {
+          row.push(cell);
+          rows.push(row);
+        }
+
+        return rows;
+      }
+
+      function normaliseHeader(value) {
+        return String(value || "")
+          .replace(/^\uFEFF/, "")
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "_")
+          .replace(/[^\w]/g, "_")
+          .replace(/_+/g, "_")
+          .replace(/^_|_$/g, "");
+      }
+
+      function setPortalStatus(message, mode) {
+        refs.statusMessage.textContent = message;
+        refs.importPill.className =
+          mode === "danger" ? "pill danger" : mode === "warn" ? "pill warn" : "pill";
+      }
+
+      function downloadLeadTemplate() {
+        downloadCsv(
+          "ace_lead_upload_template.csv",
+          [
+            {
+              lead_id: "ACE-UPL-001",
+              submitted_at: new Date().toISOString(),
+              source_partner: "partner-alpha",
+              email: "nina.carter@northstarhealth.com",
+              first_name: "Nina",
+              last_name: "Carter",
+              job_title: "VP Clinical Operations",
+              linkedin_url: "",
+              company_name: "Northstar Health",
+              domain: "northstarhealth.com",
+              industry: "healthcare",
+              geography: "United States",
+              company_size: "1000+",
+              partner_id: "partner-alpha",
+              approval_rate_6m: "0.81",
+              approval_rate_client_6m: "0.79",
+              approval_rate_vertical_6m: "0.76",
+              client_acceptance_rate_6m: "0.74",
+              email1_opened: "1",
+              email1_clicked: "1",
+              email2_opened: "1",
+              email2_clicked: "0",
+              download_count: "1",
+              visit_count: "0"
+            },
+          ]
+        );
+      }
+
+      function downloadCampaignTemplate() {
+        downloadCsv(
+          "ace_campaign_context_template.csv",
+          [
+            {
+              client_id: "client-health-01",
+              campaign_id: "HC-BOFU-2026-01",
+              campaign_name: "Clinical ROI Acceleration",
+              asset_name: "Clinical ROI Case Study",
+              asset_type: "case study",
+              asset_stage_override: "BOFU",
+              topic: "decision",
+              audience: "late stage shortlist",
+              volume: "highly targeted",
+              sequence: "decision",
+              vertical_override: "healthcare",
+              history_approval_rate: "0.77",
+              partner_id: "partner-alpha",
+              approval_rate_6m: "0.81",
+              approval_rate_client_6m: "0.79",
+              approval_rate_vertical_6m: "0.76",
+              client_acceptance_rate_6m: "0.74",
+              brief_text: "Target healthcare provider executives across clinical, finance, and IT teams in the United States. Prioritize enterprise hospitals evaluating ROI and implementation readiness."
+            }
+          ]
+        );
+      }
+
+      function resetCampaignForm() {
+        refs.campaignForm.reset();
+        refs.campaignStatusMessage.textContent = "Campaign fields reset to the default values shown in the form.";
+      }
+
+      function downloadCsv(filename, rows) {
+        if (!rows.length) {
+          return;
+        }
+        const headers = Object.keys(rows[0]);
+        const lines = [
+          headers.join(","),
+          ...rows.map((row) =>
+            headers
+              .map((header) => csvEscape(row[header]))
+              .join(",")
+          ),
+        ];
+        const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function csvEscape(value) {
+        const raw = value === null || value === undefined ? "" : String(value);
+        return /[",\n]/.test(raw) ? `"${raw.replace(/"/g, "\"\"")}"` : raw;
+      }
+
+      async function safeJson(response) {
+        try {
+          return await response.json();
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function cssEscape(value) {
+        if (window.CSS?.escape) {
+          return window.CSS.escape(value);
+        }
+        return String(value || "").replace(/["\\]/g, "\\$&");
+      }
+    </script>
+  </body>
+</html>

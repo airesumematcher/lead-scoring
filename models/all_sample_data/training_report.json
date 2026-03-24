@@ -1,0 +1,145 @@
+{
+  "dataset_summary": {
+    "rows_total": 123740,
+    "rows_latest": 123127,
+    "rows_pivot": 613,
+    "feature_count": 37,
+    "target_mean": 83.4441446581542,
+    "target_std": 9.182108381296992,
+    "target_min": 49.43,
+    "target_max": 100.0
+  },
+  "holdout_test_rows": 24748,
+  "best_model": "HistGradientBoosting",
+  "best_model_metrics": {
+    "r2_test": 0.9992876294760944,
+    "mae_test": 0.0889493175893674,
+    "rmse_test": 0.24544645046190292
+  },
+  "models": {
+    "Ridge": {
+      "r2_test": 0.9990808437959716,
+      "mae_test": 0.022256451666038603,
+      "rmse_test": 0.27880364466253194
+    },
+    "RandomForest": {
+      "r2_test": 0.9986200153736403,
+      "mae_test": 0.03733996973283897,
+      "rmse_test": 0.34161812872283953
+    },
+    "ExtraTrees": {
+      "r2_test": 0.9989315077150451,
+      "mae_test": 0.028044325081724723,
+      "rmse_test": 0.3006003491405726
+    },
+    "HistGradientBoosting": {
+      "r2_test": 0.9992876294760944,
+      "mae_test": 0.0889493175893674,
+      "rmse_test": 0.24544645046190292
+    },
+    "XGBoost": {
+      "r2_test": 0.9992765411828896,
+      "mae_test": 0.05660074274393908,
+      "rmse_test": 0.24734930379174352
+    },
+    "Ensemble": {
+      "r2_test": 0.9992565702712091,
+      "mae_test": 0.04315647381281734,
+      "rmse_test": 0.2507400726263694
+    }
+  },
+  "reduced_signal_benchmark": {
+    "feature_count": 24,
+    "excluded_features": [
+      "company_size_component_score",
+      "email_component_score",
+      "linkedin_component_score",
+      "manual_review_required",
+      "mli_flag_nurture",
+      "mli_flag_target",
+      "mli_model_score",
+      "mli_raw_score",
+      "mli_uplift",
+      "phone_component_score",
+      "source_latest",
+      "source_pivot",
+      "title_component_score"
+    ],
+    "models": {
+      "HistGradientBoosting": {
+        "r2_test": 0.7611037632443716,
+        "mae_test": 3.535697323216812,
+        "rmse_test": 4.494779998285253
+      },
+      "XGBoost": {
+        "r2_test": 0.7657930897272274,
+        "mae_test": 3.482148823150048,
+        "rmse_test": 4.450447043993203
+      }
+    },
+    "saved_artifacts": {
+      "model_xgboost": "reduced_signal_model_xgboost.pkl",
+      "model_histgradientboosting": "reduced_signal_model_histgradientboosting.pkl",
+      "imputer": "reduced_signal_imputer.pkl",
+      "feature_names": "reduced_signal_feature_names.json",
+      "domain_lookup": "domain_intent_features.csv"
+    }
+  },
+  "production_candidate": {
+    "name": "ReducedSignalXGBoost",
+    "artifact": "reduced_signal_model_xgboost.pkl",
+    "metrics": {
+      "r2_test": 0.7657930897272274,
+      "mae_test": 3.482148823150048,
+      "rmse_test": 4.450447043993203
+    },
+    "feature_count": 24,
+    "reason": "Best reduced-signal generalization among the non-leaky benchmark models."
+  },
+  "feature_names": [
+    "source_latest",
+    "source_pivot",
+    "email_valid",
+    "phone_valid",
+    "email_component_score",
+    "phone_component_score",
+    "title_seniority_score",
+    "title_component_score",
+    "company_size_band_score",
+    "company_size_component_score",
+    "job_function_score",
+    "open_count",
+    "click_count",
+    "unsubscribe_count",
+    "engagement_actions",
+    "linkedin_present",
+    "linkedin_component_score",
+    "manual_review_required",
+    "mli_flag_target",
+    "mli_flag_nurture",
+    "mli_raw_score",
+    "mli_model_score",
+    "mli_uplift",
+    "interaction_within_7d",
+    "interaction_within_30d",
+    "interaction_days_diff",
+    "buying_ctr",
+    "buying_li_ctr",
+    "buying_records_log",
+    "buying_categories_log",
+    "buying_total_leads_log",
+    "buying_total_imps_log",
+    "buying_total_clicks_log",
+    "buying_total_li_clicks_log",
+    "buying_total_exposure_ms_log",
+    "buying_total_li_shares_log",
+    "buying_avg_exposure_ms_log"
+  ],
+  "top_feature_importance": [],
+  "notes": [
+    "This model suite is trained to reproduce historical lead scores from structured sample-data CSVs.",
+    "Leak-prone fields such as scoreInfo.finalScore and scoreInfo.accuracyScore were excluded.",
+    "The reduced_signal_benchmark removes score-component fields and training-source flags to approximate a more realistic generalization test.",
+    "Excel briefing docs in sample_data were not used because they are not normalized row-level supervised datasets."
+  ]
+}

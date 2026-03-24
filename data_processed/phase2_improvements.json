@@ -1,0 +1,51 @@
+{
+  "total_samples_old": 613,
+  "total_samples_new": 1113,
+  "samples_added": 500,
+  "conversions_in_new_data": 0,
+  "conversion_rate": 0.0,
+  "improvements_by_model": {
+    "RandomForest": {
+      "old_r2": 0.5726,
+      "new_r2": 0.5824,
+      "improvement": 0.0098,
+      "improvement_pct": 1.71
+    },
+    "GradientBoosting": {
+      "old_r2": 0.5755,
+      "new_r2": 0.5611,
+      "improvement": -0.0144,
+      "improvement_pct": -2.5
+    },
+    "ExtraTrees": {
+      "old_r2": 0.571,
+      "new_r2": 0.5643,
+      "improvement": -0.0067,
+      "improvement_pct": -1.17
+    },
+    "Bagging": {
+      "old_r2": 0.5336,
+      "new_r2": 0.5636,
+      "improvement": 0.03,
+      "improvement_pct": 5.62
+    },
+    "SVR": {
+      "old_r2": 0.5653,
+      "new_r2": 0.1096,
+      "improvement": -0.4557,
+      "improvement_pct": -80.61
+    },
+    "NeuralNetwork": {
+      "old_r2": 0.4158,
+      "new_r2": 0.4769,
+      "improvement": 0.0612,
+      "improvement_pct": 14.72
+    },
+    "XGBoost": {
+      "old_r2": 0.6824,
+      "new_r2": 0.5398,
+      "improvement": -0.1425,
+      "improvement_pct": -20.89
+    }
+  }
+}

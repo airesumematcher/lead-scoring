@@ -1,0 +1,53 @@
+{
+  "models": {
+    "RandomForest": {
+      "r2_test": 0.5824,
+      "mae_test": 7.35,
+      "rmse_test": 8.69,
+      "cv_r2_mean": 0.3789,
+      "improvement_note": "Retrained with 1113 samples including 0 conversions"
+    },
+    "GradientBoosting": {
+      "r2_test": 0.5611,
+      "mae_test": 7.39,
+      "rmse_test": 8.91,
+      "cv_r2_mean": 0.3486,
+      "improvement_note": "Retrained with 1113 samples including 0 conversions"
+    },
+    "ExtraTrees": {
+      "r2_test": 0.5643,
+      "mae_test": 7.47,
+      "rmse_test": 8.88,
+      "cv_r2_mean": 0.341,
+      "improvement_note": "Retrained with 1113 samples including 0 conversions"
+    },
+    "Bagging": {
+      "r2_test": 0.5636,
+      "mae_test": 7.45,
+      "rmse_test": 8.88,
+      "cv_r2_mean": 0.3453,
+      "improvement_note": "Retrained with 1113 samples including 0 conversions"
+    },
+    "SVR": {
+      "r2_test": 0.1096,
+      "mae_test": 9.86,
+      "rmse_test": 12.69,
+      "cv_r2_mean": 0.0098,
+      "improvement_note": "Retrained with 1113 samples including 0 conversions"
+    },
+    "NeuralNetwork": {
+      "r2_test": 0.4769,
+      "mae_test": 8.05,
+      "rmse_test": 9.72,
+      "cv_r2_mean": -0.0496,
+      "improvement_note": "Retrained with 1113 samples including 0 conversions"
+    },
+    "XGBoost": {
+      "r2_test": 0.5398,
+      "mae_test": 7.63,
+      "rmse_test": 9.12,
+      "cv_r2_mean": 0.3106,
+      "improvement_note": "Retrained with 1113 samples including 0 conversions"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Python files
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+*.egg
+.coverage
+htmlcov/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test files
+.pytest_cache
+.tox/
+
+# Documentation
+docs/
+*.md
+*.rst
+
+# Docker files (don't copy these into image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/
+
+# Development
+.env.local
+.env.test
+logs/
+data/
+
+# Kubernetes
+k8s/
+helm/
+
+# Miscellaneous
+*.log
+*.sqlite
+*.db
+.DS_Store
+Thumbs.db

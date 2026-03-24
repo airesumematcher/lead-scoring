@@ -1,0 +1,245 @@
+thresholds:
+  deliver_score: 68
+  review_score: 50
+  predicted_approval_score: 55
+  high_fit_score: 65
+  high_intent_score: 55
+  bdr_trigger_personas: 2
+
+weights:
+  approval:
+    fit_score: 0.28
+    intent_score: 0.22
+    partner_signal_score: 0.18
+    client_history_score: 0.10
+    campaign_history_score: 0.08
+    data_quality_score: 0.08
+    icp_match_score: 0.06
+  buying_group:
+    unique_persona_count: 0.35
+    persona_completeness_score: 0.25
+    journey_stage_score: 0.20
+    account_history_score: 0.20
+
+engagement_weights:
+  open: 8
+  click: 16
+  download: 22
+  visit: 10
+  email_two_multiplier: 1.5
+  recency_half_life_days: 21
+  buying_group_half_life_days: 45
+  account_history_half_life_days: 90
+
+stage_weights:
+  TOFU: 1.0
+  MOFU: 2.0
+  BOFU: 4.5
+
+generic_domains:
+  - gmail.com
+  - yahoo.com
+  - hotmail.com
+  - outlook.com
+  - aol.com
+  - icloud.com
+  - example.com
+
+seniority_keywords:
+  executive:
+    - chief
+    - cfo
+    - ceo
+    - cio
+    - cmo
+    - coo
+    - president
+    - founder
+    - owner
+  vp:
+    - vp
+    - vice president
+    - svp
+    - avp
+  director:
+    - director
+    - head
+    - gm
+    - general manager
+  manager:
+    - manager
+    - lead
+    - principal
+  practitioner:
+    - specialist
+    - analyst
+    - coordinator
+    - associate
+    - engineer
+
+seniority_scores:
+  executive: 95
+  vp: 85
+  director: 72
+  manager: 58
+  practitioner: 42
+  unknown: 35
+
+job_function_keywords:
+  finance:
+    - finance
+    - financial
+    - accounting
+    - controller
+    - fp&a
+    - treasury
+    - procurement
+  it:
+    - technology
+    - it
+    - information
+    - engineering
+    - architecture
+    - developer
+    - infrastructure
+    - security
+  operations:
+    - operations
+    - ops
+    - supply chain
+    - manufacturing
+    - plant
+    - logistics
+  marketing:
+    - marketing
+    - demand gen
+    - growth
+    - digital
+    - campaign
+  sales:
+    - sales
+    - revenue
+    - business development
+    - account executive
+  clinical:
+    - clinical
+    - care
+    - nursing
+    - physician
+    - patient
+  line_of_business:
+    - product
+    - strategy
+    - business
+    - transformation
+
+job_function_prototypes:
+  finance:
+    - chief financial officer
+    - vp finance
+    - director finance
+  it:
+    - chief information officer
+    - vp engineering
+    - director it
+  operations:
+    - vp operations
+    - operations manager
+    - manufacturing director
+  marketing:
+    - demand generation director
+    - marketing operations manager
+  sales:
+    - vp sales
+    - director business development
+  clinical:
+    - chief medical officer
+    - clinical operations director
+  line_of_business:
+    - general manager
+    - line of business leader
+
+content_type_keywords:
+  case_study: [case study, success story, customer story]
+  roi_tool: [roi, calculator, business case]
+  pricing: [pricing, cost, quote]
+  demo: [demo, walkthrough, tour]
+  webinar: [webinar, on-demand, session]
+  whitepaper: [whitepaper, report, guide, ebook]
+  checklist: [checklist, worksheet, template]
+
+stage_keywords:
+  TOFU: [awareness, ebook, whitepaper, guide, checklist, trends, benchmark]
+  MOFU: [webinar, workshop, framework, playbook, comparison, evaluation]
+  BOFU: [case study, roi, pricing, demo, trial, implementation, migration]
+
+vertical_keywords:
+  healthcare: [healthcare, clinical, provider, payer, hospital]
+  saas: [saas, software, cloud, digital, platform]
+  financial_services: [finance, banking, insurance, fintech]
+  manufacturing: [manufacturing, plant, factory, industrial, supply chain]
+
+campaign_mode_keywords:
+  TOFU:
+    asset_type: [ebook, report, guide, benchmark]
+    topic: [awareness, trends, education]
+    audience: [broad, awareness, top]
+    volume: [high, broad]
+    sequence: [single, awareness]
+  MOFU:
+    asset_type: [webinar, workshop, comparison]
+    topic: [evaluation, solution, use case]
+    audience: [mid, engaged]
+    volume: [targeted, medium]
+    sequence: [nurture, multi-touch]
+  BOFU:
+    asset_type: [case study, roi, pricing, demo]
+    topic: [decision, purchase, implementation]
+    audience: [late stage, shortlist]
+    volume: [small, highly targeted]
+    sequence: [decision, high intent]
+
+vertical_personas:
+  healthcare:
+    - clinical
+    - finance
+    - it
+  saas:
+    - it
+    - finance
+    - line_of_business
+  financial_services:
+    - finance
+    - it
+    - operations
+  manufacturing:
+    - operations
+    - finance
+    - it
+  default:
+    - finance
+    - it
+    - operations
+
+geography_keywords:
+  north_america: [united states, usa, us, canada, north america]
+  emea: [emea, europe, uk, united kingdom, germany, france, dach]
+  apac: [apac, asia, india, singapore, australia, japan]
+
+size_keywords:
+  enterprise:
+    - enterprise
+    - 1000+
+    - 1000
+    - 5000
+    - 10000
+  mid_market:
+    - mid-market
+    - 200
+    - 500
+    - 999
+  smb:
+    - smb
+    - small
+    - startup
+    - 1-199

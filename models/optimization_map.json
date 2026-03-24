@@ -1,0 +1,69 @@
+{
+  "top_features_count": 15,
+  "original_features_count": 25,
+  "top_feature_indices": [
+    21,
+    2,
+    20,
+    0,
+    13,
+    6,
+    19,
+    18,
+    15,
+    7,
+    12,
+    10,
+    1,
+    14,
+    9
+  ],
+  "top_feature_names": [
+    "email1_engagement",
+    "campaign_volume_tier",
+    "has_engagement",
+    "asset_type_score",
+    "email2_clicked",
+    "engagement_sequence_score",
+    "is_executive",
+    "combined_score",
+    "fit_score",
+    "audience_type",
+    "email2_opened",
+    "email1_opened",
+    "asset_type",
+    "total_engagements",
+    "company_size_score"
+  ],
+  "importance_scores": {
+    "21": 2.1480240509069763,
+    "2": 0.5859849974033243,
+    "20": 0.1558863567833892,
+    "0": 0.04575129508511436,
+    "13": 0.022084048054251522,
+    "6": 0.018813003837663586,
+    "26": 0.007263130370921748,
+    "27": 0.006856987345427036,
+    "29": 0.0035124504509672356,
+    "19": 0.0013579020286436606,
+    "31": 0.0009968301501128366,
+    "18": 0.000858784795695726,
+    "28": 0.0006417599487923181,
+    "15": 0.0005220557721145677,
+    "7": 0.00039843758030259956
+  },
+  "model_performance": {
+    "xgboost": {
+      "R2": 0.28154563280205913,
+      "RMSE": 5.231865798060743
+    },
+    "gradientboosting": {
+      "R2": 0.2629104907059471,
+      "RMSE": 5.2992830366560675
+    },
+    "randomforest": {
+      "R2": 0.2743129869540446,
+      "RMSE": 5.258134324340294
+    }
+  }
+}

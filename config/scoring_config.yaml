@@ -1,0 +1,56 @@
+model:
+  version: "0.1.0"
+  training_date: "2026-03-01"
+
+ace_weights:
+  nurture:
+    accuracy: 0.30
+    client_fit: 0.40
+    engagement: 0.30
+  outbound:
+    accuracy: 0.35
+    client_fit: 0.30
+    engagement: 0.35
+  abm:
+    accuracy: 0.25
+    client_fit: 0.40
+    engagement: 0.35
+  event:
+    accuracy: 0.30
+    client_fit: 0.35
+    engagement: 0.35
+
+grade_boundaries:
+  A: 85
+  B: 70
+  C: 50
+  # <50 is D
+
+time_decay:
+  engagement_rate: 0.1  # exp(-0.1 * days)
+  freshness:
+    high_quality_rate: 0.02  # exp(-0.02 * days) for high CF + high E
+    low_quality_rate: 0.05   # exp(-0.05 * days) for low CF or low E
+
+freshness_thresholds:
+  fresh: 7      # days_since_engagement <= 7
+  aging: 30     # 8-30 days
+  stale: 999    # >30 days or no engagement
+
+confidence_thresholds:
+  high: 12      # >=12 signal features
+  medium: 8     # 8-11 signals
+
+accuracy_gates:
+  max_delivery_latency_days: 60
+  max_duplicate_age_days: 30
+
+# Placeholder for future Phase 2 pipeline influence model parameters
+pipeline_influence:
+  label: "l2o_rate"  # Will be "opportunity_created" once CRM available
+  proxy_components:
+    acceptance_rate_weight: 0.25
+    seniority_weight: 0.20
+    tal_match_weight: 0.20
+    engagement_recency_weight: 0.20
+    freshness_weight: 0.15

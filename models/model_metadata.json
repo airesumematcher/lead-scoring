@@ -1,0 +1,32 @@
+{
+  "model_type": "GradientBoostingRegressor",
+  "features": [
+    "company_size_score",
+    "total_engagement_score",
+    "has_engagement",
+    "is_executive",
+    "unsubscribed",
+    "email1_engagement",
+    "email2_engagement"
+  ],
+  "n_estimators": 100,
+  "metrics": {
+    "train_r2": 0.6275461038946466,
+    "test_r2": 0.5362490977277161,
+    "train_rmse": 3.6774688197648056,
+    "test_rmse": 4.055103930454205,
+    "train_mae": 2.9195273365321937,
+    "test_mae": 3.348265344199312
+  },
+  "feature_importance": {
+    "company_size_score": 0.10872782987645885,
+    "total_engagement_score": 0.022768529899821414,
+    "has_engagement": 0.010436886811204976,
+    "is_executive": 0.7746354945978003,
+    "unsubscribed": 0.0,
+    "email1_engagement": 0.029515577134114863,
+    "email2_engagement": 0.05391568168059947
+  },
+  "created_at": "2026-03-13T13:58:28.881238",
+  "version": "1.0.0"
+}

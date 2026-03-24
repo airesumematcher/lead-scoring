@@ -1,0 +1,96 @@
+{
+  "timestamp": "2026-03-14T15:57:25.102467",
+  "models": {
+    "RandomForest": {
+      "r2_train": 0.6865436345987697,
+      "r2_test": 0.5725832087091305,
+      "mae_test": 3.146406671429549,
+      "rmse_test": 3.893008890209322,
+      "cv_mean": 0.5943350479358662,
+      "cv_std": 0.034397628177874694
+    },
+    "GradientBoosting": {
+      "r2_train": 0.7040960989855434,
+      "r2_test": 0.5754678472855823,
+      "mae_test": 3.0011666857302535,
+      "rmse_test": 3.8798496791435566,
+      "cv_mean": 0.5655178225489588,
+      "cv_std": 0.05352056259668846
+    },
+    "ExtraTrees": {
+      "r2_train": 0.6957790751130859,
+      "r2_test": 0.5657552855875335,
+      "mae_test": 3.094748521759452,
+      "rmse_test": 3.9239808219546197,
+      "cv_mean": 0.591047075614874,
+      "cv_std": 0.037021670891416295
+    },
+    "Bagging": {
+      "r2_train": 0.655288713580817,
+      "r2_test": 0.5335892372245679,
+      "mae_test": 3.273750438719101,
+      "rmse_test": 4.066716402830007,
+      "cv_mean": 0.5349898763865927,
+      "cv_std": 0.04942710824918922
+    },
+    "SVR": {
+      "r2_train": 0.6779772895866286,
+      "r2_test": 0.565337170513584,
+      "mae_test": 2.985198353126131,
+      "rmse_test": 3.925869481428883,
+      "cv_mean": 0.5544719896292314,
+      "cv_std": 0.04323446594037937
+    },
+    "NeuralNetwork": {
+      "r2_train": 0.5603638911441841,
+      "r2_test": 0.4157554907803077,
+      "mae_test": 3.707257057512816,
+      "rmse_test": 4.551524925913262,
+      "cv_mean": 0.36226855051591933,
+      "cv_std": 0.2043208650766895
+    },
+    "XGBoost": {
+      "r2_train": 0.7063474245245565,
+      "r2_test": 0.5692623396063419,
+      "mae_test": 3.052990953398914,
+      "rmse_test": 3.9081032413389836,
+      "cv_mean": 0.5767715207507036,
+      "cv_std": 0.04898804388387016
+    },
+    "Ensemble": {
+      "r2_train": 0.6974615890028171,
+      "r2_test": 0.5767925605897626,
+      "mae_test": 3.0855281884370687,
+      "rmse_test": 3.873791593550128,
+      "cv_mean": 0.5767925605897626,
+      "cv_std": 0.0
+    }
+  },
+  "feature_names": [
+    "asset_type_score",
+    "asset_type",
+    "campaign_volume_tier",
+    "campaign_volume_score",
+    "total_leads_delivered",
+    "engagement_sequence",
+    "engagement_sequence_score",
+    "audience_type",
+    "audience_type_score",
+    "company_size_score",
+    "email1_opened",
+    "email1_clicked",
+    "email2_opened",
+    "email2_clicked",
+    "total_engagements",
+    "fit_score",
+    "intent_score",
+    "campaign_quality_score",
+    "combined_score",
+    "is_executive",
+    "has_engagement",
+    "email1_engagement",
+    "email2_engagement",
+    "total_engagement_score",
+    "unsubscribed"
+  ]
+}

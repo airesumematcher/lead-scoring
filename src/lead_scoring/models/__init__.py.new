@@ -1,0 +1,28 @@
+"""Data models for lead scoring system."""
+
+# Re-export all model classes for convenient imports
+from lead_scoring.models import (
+    LeadInput, ContactFields, CompanyFields, CampaignFields,
+    EngagementEvent, EngagementType,
+    AccountLevelFields, FeedbackSignals,
+    AccuracyFeatures, ClientFitFeatures, EngagementFeatures,
+    DerivedFeatures, ExtractedFeatures,
+    ACEBreakdown, PipelineInfluence, FreshnessSignal,
+    ScoreNarrative, AccountContext, DataQuality, AuditTrail,
+    LeadScore,
+    Grade, ConfidenceBand, Freshness, RecommendedAction,
+    ProgramType, LeadStatus,
+)
+
+__all__ = [
+    'LeadInput', 'ContactFields', 'CompanyFields', 'CampaignFields',
+    'EngagementEvent', 'EngagementType',
+    'AccountLevelFields', 'FeedbackSignals',
+    'AccuracyFeatures', 'ClientFitFeatures', 'EngagementFeatures',
+    'DerivedFeatures', 'ExtractedFeatures',
+    'ACEBreakdown', 'PipelineInfluence', 'FreshnessSignal',
+    'ScoreNarrative', 'AccountContext', 'DataQuality', 'AuditTrail',
+    'LeadScore',
+    'Grade', 'ConfidenceBand', 'Freshness', 'RecommendedAction',
+    'ProgramType', 'LeadStatus',
+]

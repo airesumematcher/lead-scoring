@@ -1,0 +1,9 @@
+[
+  "company_size_score",
+  "total_engagement_score",
+  "has_engagement",
+  "is_executive",
+  "unsubscribed",
+  "email1_engagement",
+  "email2_engagement"
+]

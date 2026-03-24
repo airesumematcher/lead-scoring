@@ -1,0 +1,57 @@
+{
+  "features": [
+    "asset_type_score",
+    "asset_type",
+    "campaign_volume_tier",
+    "campaign_volume_score",
+    "total_leads_delivered",
+    "engagement_sequence",
+    "engagement_sequence_score",
+    "audience_type",
+    "audience_type_score",
+    "company_size_score",
+    "email1_opened",
+    "email1_clicked",
+    "email2_opened",
+    "email2_clicked",
+    "total_engagements",
+    "fit_score",
+    "intent_score",
+    "campaign_quality_score",
+    "combined_score",
+    "is_executive",
+    "has_engagement",
+    "email1_engagement",
+    "email2_engagement",
+    "total_engagement_score",
+    "unsubscribed"
+  ],
+  "campaign_features": [
+    "asset_type_score",
+    "campaign_volume_score",
+    "engagement_sequence_score",
+    "audience_type_score",
+    "fit_score",
+    "intent_score",
+    "campaign_quality_score",
+    "combined_score"
+  ],
+  "base_features": [
+    "is_executive",
+    "company_size_score",
+    "email1_engagement",
+    "email2_engagement",
+    "total_engagement_score",
+    "has_engagement",
+    "unsubscribed"
+  ],
+  "engagement_features": [
+    "email1_opened",
+    "email1_clicked",
+    "email2_opened",
+    "email2_clicked",
+    "total_engagements"
+  ],
+  "count": 613,
+  "timestamp": "2026-03-13T14:54:54.131988"
+}

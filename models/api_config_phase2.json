@@ -1,0 +1,33 @@
+{
+  "version": "2.0-phase2",
+  "default_ensemble": "ensemble",
+  "models": {
+    "ensemble": {
+      "type": "original",
+      "r2": 0.6904,
+      "description": "Proven ensemble - best overall accuracy"
+    },
+    "gradient_boosting": {
+      "type": "original",
+      "r2": 0.5755,
+      "description": "Fast, interpretable"
+    },
+    "random_forest": {
+      "type": "phase2",
+      "r2": 0.5824,
+      "description": "Phase 2 version - conversion-aware (+1.7%)",
+      "use_case": "ABM/conversion campaigns"
+    },
+    "xgboost": {
+      "type": "original",
+      "r2": 0.6824,
+      "description": "Best single model"
+    }
+  },
+  "switching_logic": {
+    "default": "ensemble",
+    "if_campaign_type_abm": "random_forest_phase2",
+    "if_campaign_type_nurture": "ensemble",
+    "if_intent_signals_high": "ensemble"
+  }
+}

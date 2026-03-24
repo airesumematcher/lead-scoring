@@ -1,0 +1,23 @@
+{
+  "status": "COMPLETE",
+  "phase": 2,
+  "date": "2026-03-13T23:27:02.857346",
+  "samples": {
+    "original": 613,
+    "crm_synthetic": 500,
+    "total": 1113
+  },
+  "model_count": 7,
+  "best_original": {
+    "model": "Ensemble",
+    "r2": 0.6904
+  },
+  "best_phase2": {
+    "model": "RandomForest",
+    "r2": 0.5824
+  },
+  "models_improved": 3,
+  "models_regressed": 4,
+  "recommendation": "HYBRID - Keep Original Ensemble, use Phase 2 for conversion campaigns",
+  "next_phase": "Phase 3: Intent Signals (expected +10% improvement)"
+}
