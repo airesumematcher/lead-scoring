@@ -15,9 +15,20 @@ sys.path.insert(0, str(ROOT / "src"))
 from lead_scoring.platform import BuyingIntelligenceService
 
 
+DEFAULT_DATASET = ROOT / "data_processed" / "verify_prd_training.csv"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run the ACE monthly retraining workflow.")
-    parser.add_argument("dataset_path", help="Path to the PRD feature table CSV")
+    parser.add_argument(
+        "dataset_path",
+        nargs="?",
+        default=str(DEFAULT_DATASET),
+        help=(
+            "Path to the PRD feature table CSV (must include a 'status' column). "
+            f"Defaults to {DEFAULT_DATASET}"
+        ),
+    )
     parser.add_argument(
         "--force-promote",
         action="store_true",

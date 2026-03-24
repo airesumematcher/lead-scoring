@@ -444,6 +444,145 @@
         color: #2b5ca0;
       }
 
+      /* Score gauge */
+      .score-gauge {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 110px;
+      }
+
+      .score-top {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+      }
+
+      .score-number {
+        font-size: 1.45rem;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .score-number.score-deliver { color: var(--teal); }
+      .score-number.score-review  { color: var(--gold); }
+      .score-number.score-hold    { color: var(--danger); }
+
+      .score-max {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+
+      .score-bar-track {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(23, 33, 45, 0.09);
+        overflow: hidden;
+      }
+
+      .score-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.5s ease;
+      }
+
+      .score-bar-fill.score-deliver { background: var(--teal); }
+      .score-bar-fill.score-review  { background: var(--gold); }
+      .score-bar-fill.score-hold    { background: var(--danger); }
+
+      /* Score breakdown tooltip row */
+      .breakdown-row td {
+        padding: 0 14px 12px;
+        border-bottom: 1px solid rgba(23, 33, 45, 0.06);
+        background: rgba(255,255,255,0.6);
+      }
+
+      .breakdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 8px;
+        padding-top: 8px;
+      }
+
+      .breakdown-item {
+        background: rgba(23, 33, 45, 0.04);
+        border: 1px solid rgba(23, 33, 45, 0.07);
+        border-radius: 12px;
+        padding: 8px 10px;
+      }
+
+      .breakdown-item .b-label {
+        font-size: 0.74rem;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .breakdown-item .b-val {
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+
+      .breakdown-mini-bar {
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(23,33,45,0.09);
+        margin-top: 4px;
+        overflow: hidden;
+      }
+
+      .breakdown-mini-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+
+      .expand-btn {
+        appearance: none;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 0.8rem;
+        padding: 2px 6px;
+        border-radius: 6px;
+        transition: background 0.15s;
+      }
+
+      .expand-btn:hover {
+        background: rgba(23,33,45,0.08);
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* Score distribution chart */
+      .dist-chart {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 48px;
+        margin-top: 10px;
+      }
+
+      .dist-bar-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .dist-bar {
+        width: 100%;
+        border-radius: 4px 4px 0 0;
+        min-height: 2px;
+        transition: height 0.4s ease;
+      }
+
+      .dist-label {
+        font-size: 0.64rem;
+        color: var(--muted);
+      }
+
       .empty-state {
         padding: 28px;
         border-radius: 24px;
@@ -737,11 +876,28 @@
         </article>
       </section>
 
+      <section class="panel results" style="margin-top: 22px; padding: 24px 28px 18px;">
+        <div class="section-head" style="margin-bottom: 10px;">
+          <div>
+            <h2 style="font-size:1rem; margin:0;">Score Distribution</h2>
+          </div>
+        </div>
+        <div id="distEmpty" class="muted" style="font-size:0.9rem;">Import leads to see score distribution.</div>
+        <div id="distChart" hidden>
+          <div class="dist-chart" id="distBars"></div>
+          <div style="font-size:0.8rem; color:var(--muted); margin-top:6px;">
+            <span style="color:var(--danger)">■</span> Hold (&lt;50) &nbsp;
+            <span style="color:var(--gold)">■</span> Review (50–67) &nbsp;
+            <span style="color:var(--teal)">■</span> Deliver (≥68)
+          </div>
+        </div>
+      </section>
+
       <section class="panel results" style="margin-top: 22px;">
         <div class="section-head">
           <div>
             <h2>3. Scored Output</h2>
-            <p class="helper">Immediate output from the batch scoring API. Use this as the review table before export.</p>
+            <p class="helper">Click any row to expand the score breakdown. Use this as the review table before export.</p>
           </div>
         </div>
         <div id="resultsEmpty" class="empty-state">
@@ -753,11 +909,12 @@
               <tr>
                 <th>Lead</th>
                 <th>Company</th>
-                <th>Decision</th>
                 <th>Score</th>
+                <th>Decision</th>
                 <th>Quadrant</th>
-                <th>Reasons</th>
+                <th>Top Reason</th>
                 <th>Buying Group</th>
+                <th></th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -840,6 +997,8 @@
         reportEmpty: document.getElementById("reportEmpty"),
         reportTableWrap: document.getElementById("reportTableWrap"),
         reportTableBody: document.querySelector("#reportTable tbody"),
+        distEmpty: document.getElementById("distEmpty"),
+        distChart: document.getElementById("distChart"),
       };
 
       initialize();
@@ -1017,6 +1176,72 @@
         }
       }
 
+      function scoreClass(score) {
+        if (score >= 68) return "score-deliver";
+        if (score >= 50) return "score-review";
+        return "score-hold";
+      }
+
+      function renderDistribution(results) {
+        const buckets = [
+          { label: "0–19",  min: 0,  max: 20,  color: "var(--danger)" },
+          { label: "20–39", min: 20, max: 40,  color: "var(--danger)" },
+          { label: "40–49", min: 40, max: 50,  color: "var(--danger)" },
+          { label: "50–59", min: 50, max: 60,  color: "var(--gold)" },
+          { label: "60–67", min: 60, max: 68,  color: "var(--gold)" },
+          { label: "68–79", min: 68, max: 80,  color: "var(--teal)" },
+          { label: "80–89", min: 80, max: 90,  color: "var(--teal)" },
+          { label: "90–100",min: 90, max: 101, color: "var(--teal)" },
+        ];
+        const counts = buckets.map(b =>
+          results.filter(r => r.approval_score >= b.min && r.approval_score < b.max).length
+        );
+        const maxCount = Math.max(...counts, 1);
+        const barsEl = document.getElementById("distBars");
+        barsEl.innerHTML = "";
+        buckets.forEach((b, i) => {
+          const pct = Math.round((counts[i] / maxCount) * 100);
+          const wrap = document.createElement("div");
+          wrap.className = "dist-bar-wrap";
+          wrap.title = `${b.label}: ${counts[i]} leads`;
+          wrap.innerHTML = `
+            <div class="dist-bar" style="height:${Math.max(pct, 2)}%; background:${b.color}; width:100%;"></div>
+            <div class="dist-label">${b.label}</div>
+          `;
+          barsEl.appendChild(wrap);
+        });
+        document.getElementById("distEmpty").hidden = true;
+        document.getElementById("distChart").hidden = false;
+      }
+
+      function renderBreakdownRow(item, colSpan) {
+        const bd = item.breakdown || {};
+        const fields = [
+          { label: "Fit",            key: "fit_score" },
+          { label: "Intent",         key: "intent_score" },
+          { label: "Partner Signal", key: "partner_signal_score" },
+          { label: "Client History", key: "client_history_score" },
+          { label: "Campaign Hist.", key: "campaign_history_score" },
+          { label: "Data Quality",   key: "data_quality_score" },
+          { label: "ICP Match",      key: "icp_match_score" },
+        ];
+        const cards = fields.map(f => {
+          const val = bd[f.key] ?? "—";
+          const pct = typeof val === "number" ? val : 0;
+          return `<div class="breakdown-item">
+            <div class="b-label">${f.label}</div>
+            <div class="b-val">${val}</div>
+            <div class="breakdown-mini-bar"><div class="breakdown-mini-fill" style="width:${pct}%"></div></div>
+          </div>`;
+        }).join("");
+        const tr = document.createElement("tr");
+        tr.className = "breakdown-row";
+        tr.innerHTML = `<td colspan="${colSpan}">
+          <div class="breakdown-grid">${cards}</div>
+        </td>`;
+        return tr;
+      }
+
       function renderBatchResults(payload) {
         const results = payload.results || [];
         const deliverCount = results.filter((item) => item.delivery_decision === "deliver").length;
@@ -1033,32 +1258,57 @@
         refs.resultsTableWrap.hidden = results.length === 0;
         refs.resultsTableBody.innerHTML = "";
 
+        renderDistribution(results);
+
+        const COL_SPAN = 8;
         results.forEach((item) => {
           const original = state.leadLookup.get(item.lead_id);
+          const sc = scoreClass(item.approval_score);
+          const topReason = item.top_reasons?.[0]?.message || "—";
           const row = document.createElement("tr");
-          const reasons = (item.top_reasons || []).map((reason) => reason.message).join(" ");
+          row.style.cursor = "pointer";
           row.innerHTML = `
             <td>
               <strong>${item.lead_id}</strong>
               <div class="muted">${item.predicted_outcome}</div>
             </td>
             <td>
-              <strong>${escapeHtml(original?.company?.company_name || "Unknown company")}</strong>
+              <strong>${escapeHtml(original?.company?.company_name || "Unknown")}</strong>
               <div class="muted">${escapeHtml(original?.company?.domain || "")}</div>
             </td>
+            <td>
+              <div class="score-gauge">
+                <div class="score-top">
+                  <span class="score-number ${sc}">${item.approval_score}</span>
+                  <span class="score-max">/ 100</span>
+                </div>
+                <div class="score-bar-track">
+                  <div class="score-bar-fill ${sc}" style="width:${item.approval_score}%"></div>
+                </div>
+                <div class="muted" style="font-size:0.76rem;">${item.campaign_mode}</div>
+              </div>
+            </td>
             <td><span class="badge ${item.delivery_decision}">${item.delivery_decision}</span></td>
-            <td>
-              <strong>${item.approval_score}</strong>
-              <div class="muted">${item.campaign_mode}</div>
-            </td>
             <td><span class="badge ${item.quadrant.toLowerCase()}">${item.quadrant}</span></td>
-            <td>${escapeHtml(reasons)}</td>
+            <td style="max-width:240px; font-size:0.88rem;">${escapeHtml(topReason)}</td>
             <td>
-              <strong>${item.buying_group.unique_persona_count} personas</strong>
-              <div class="muted">Trigger: ${item.buying_group.bdr_trigger ? "Yes" : "No"}</div>
+              <strong>${item.buying_group.unique_persona_count} persona${item.buying_group.unique_persona_count !== 1 ? "s" : ""}</strong>
+              <div class="muted">BDR: ${item.buying_group.bdr_trigger ? "✓ Yes" : "No"}</div>
             </td>
+            <td><button class="expand-btn" title="Show breakdown">▼</button></td>
           `;
+
+          const breakdownRow = renderBreakdownRow(item, COL_SPAN);
+          breakdownRow.hidden = true;
+
+          row.addEventListener("click", () => {
+            const isOpen = !breakdownRow.hidden;
+            breakdownRow.hidden = isOpen;
+            row.querySelector(".expand-btn").textContent = isOpen ? "▼" : "▲";
+          });
+
           refs.resultsTableBody.appendChild(row);
+          refs.resultsTableBody.appendChild(breakdownRow);
         });
       }
 
