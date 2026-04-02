@@ -52,6 +52,7 @@ HEADER_ALIASES: dict[str, list[str]] = {
     "email2_clicked": ["email_2_clicked", "email2_click", "clicked_email_2"],
     "download_count": ["downloads", "downloaded", "asset_downloads"],
     "visit_count": ["visits", "page_visits", "web_visits"],
+    "asset_name": ["asset", "content_name", "content_title", "resource_name", "asset_title", "content_piece"],
 }
 
 

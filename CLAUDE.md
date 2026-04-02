@@ -1,3 +1,7 @@
+> **Inherits**: `~/.claude/CLAUDE.md` (global AI CTO rules — quality bar, pushback patterns, Think→Build→Prove workflow). All global rules apply here.
+
+---
+
 # CLAUDE.md — ACE Buying Intelligence Platform
 
 This file is the authoritative guide for Claude Code when working in this repository.
