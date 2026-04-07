@@ -241,6 +241,7 @@ def _build_lead_record(
                     "vertical_override": campaign_context.get("vertical_override") or None,
                 },
                 "history_approval_rate": _parse_float(campaign_context.get("history_approval_rate")),
+                "buying_group_definition": campaign_context.get("buying_group_definition") or None,
             },
             "partner_signals": {
                 "partner_id": canonical_row.get("partner_id") or campaign_context.get("partner_id") or None,

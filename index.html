@@ -499,34 +499,38 @@
 
       .breakdown-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-        gap: 8px;
-        padding-top: 8px;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 10px;
+        padding-top: 10px;
       }
 
       .breakdown-item {
         background: rgba(23, 33, 45, 0.04);
         border: 1px solid rgba(23, 33, 45, 0.07);
         border-radius: 12px;
-        padding: 8px 10px;
+        padding: 10px 12px;
       }
 
       .breakdown-item .b-label {
         font-size: 0.74rem;
         color: var(--muted);
         margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 600;
       }
 
       .breakdown-item .b-val {
-        font-size: 0.92rem;
-        font-weight: 700;
+        font-size: 1.1rem;
+        font-weight: 800;
       }
 
       .breakdown-mini-bar {
         height: 3px;
         border-radius: 999px;
         background: rgba(23,33,45,0.09);
-        margin-top: 4px;
+        margin-top: 5px;
+        margin-bottom: 8px;
         overflow: hidden;
       }
 
@@ -534,6 +538,38 @@
         height: 100%;
         border-radius: 999px;
         background: var(--accent);
+      }
+
+      .signal-detail {
+        margin-top: 6px;
+        font-size: 0.72rem;
+        line-height: 1.45;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .signal-driver {
+        color: var(--teal);
+        display: flex;
+        gap: 4px;
+      }
+
+      .signal-driver::before {
+        content: "✓";
+        flex-shrink: 0;
+        font-weight: 700;
+      }
+
+      .signal-flag {
+        color: #a06010;
+        display: flex;
+        gap: 4px;
+      }
+
+      .signal-flag::before {
+        content: "⚠";
+        flex-shrink: 0;
       }
 
       .expand-btn {
@@ -597,6 +633,172 @@
         font-size: 0.9rem;
         color: var(--muted);
       }
+
+      /* Buying group builder */
+      .bg-builder {
+        margin-top: 18px;
+        border: 1px solid rgba(23,33,45,0.09);
+        border-radius: 18px;
+        overflow: hidden;
+        background: rgba(255,255,255,0.55);
+      }
+
+      .bg-builder-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: rgba(23,33,45,0.04);
+        border-bottom: 1px solid rgba(23,33,45,0.08);
+        gap: 10px;
+      }
+
+      .bg-builder-head strong { font-size: 0.88rem; }
+
+      .bg-persona-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.83rem;
+      }
+
+      .bg-persona-table th {
+        font-size: 0.72rem;
+        padding: 8px 10px;
+        background: rgba(23,33,45,0.03);
+      }
+
+      .bg-persona-table td {
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(23,33,45,0.06);
+      }
+
+      .bg-persona-table select,
+      .bg-persona-table input {
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 0.82rem;
+        width: 100%;
+      }
+
+      .remove-persona-btn {
+        appearance: none;
+        border: 0;
+        background: rgba(182,58,58,0.10);
+        color: var(--danger);
+        border-radius: 6px;
+        padding: 4px 8px;
+        cursor: pointer;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .remove-persona-btn:hover { background: rgba(182,58,58,0.20); transform: none; box-shadow: none; }
+
+      /* Role coverage pills */
+      .role-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        margin: 2px 2px 0 0;
+      }
+
+      .role-dm   { background: rgba(15,122,107,0.14);  color: var(--teal); }
+      .role-inf  { background: rgba(43,92,160,0.12);   color: #2b5ca0; }
+      .role-champ{ background: rgba(199,138,44,0.14);  color: var(--gold); }
+      .role-user { background: rgba(23,33,45,0.08);    color: var(--muted); }
+      .role-gate { background: rgba(182,58,58,0.10);   color: var(--danger); }
+
+      /* Selling story */
+      .story-panel {
+        margin-top: 14px;
+        border: 1px solid rgba(23,33,45,0.09);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .story-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: rgba(23,33,45,0.04);
+        border-bottom: 1px solid rgba(23,33,45,0.08);
+      }
+
+      .story-header strong { font-size: 0.88rem; }
+
+      .story-motion {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 700;
+      }
+
+      .motion-accelerate { background: rgba(15,122,107,0.14);  color: var(--teal); }
+      .motion-nurture    { background: rgba(199,138,44,0.14);  color: var(--gold); }
+      .motion-hold       { background: rgba(182,58,58,0.12);   color: var(--danger); }
+
+      .story-body {
+        padding: 14px 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .story-section { display: grid; gap: 4px; }
+
+      .story-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .story-text {
+        font-size: 0.86rem;
+        line-height: 1.6;
+        color: var(--ink);
+      }
+
+      .story-action {
+        margin-top: 4px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: rgba(186,75,38,0.07);
+        border-left: 3px solid var(--accent);
+        font-size: 0.86rem;
+        font-weight: 600;
+        line-height: 1.5;
+      }
+
+      /* Persona coverage table in expanded row */
+      .coverage-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding-top: 6px;
+      }
+
+      .coverage-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: 10px;
+        font-size: 0.76rem;
+        font-weight: 600;
+        border: 1px solid rgba(23,33,45,0.08);
+      }
+
+      .chip-covered   { background: rgba(15,122,107,0.10); color: var(--teal); }
+      .chip-uncovered { background: rgba(182,58,58,0.08);  color: var(--danger); }
 
       @media (max-width: 1180px) {
         .masthead,
@@ -839,6 +1041,39 @@
               <textarea name="brief_text">Target healthcare provider executives across clinical, finance, and IT teams in the United States. Prioritize enterprise hospitals evaluating ROI and implementation readiness.</textarea>
             </label>
           </form>
+
+          <!-- Buying Group Definition Builder -->
+          <div class="bg-builder" style="margin-top: 20px;">
+            <div class="bg-builder-head">
+              <strong>Buying Group Definition</strong>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:600;">
+                  <input id="bgVerified" type="checkbox" style="width:auto;" />
+                  Verified
+                </label>
+                <select id="bgGroupType" style="border-radius:999px; padding:5px 10px; font-size:0.82rem; width:auto;">
+                  <option value="recommended">Recommended</option>
+                  <option value="manual">Manually Created</option>
+                </select>
+                <input id="bgProductCategory" placeholder="Product category (e.g. Marketing Automation Platform)"
+                  style="border-radius:999px; padding:5px 12px; font-size:0.82rem; min-width:220px;" />
+                <button id="addPersonaBtn" class="secondary" type="button" style="padding:6px 14px; font-size:0.82rem;">+ Add Persona</button>
+              </div>
+            </div>
+            <table class="bg-persona-table" id="bgPersonaTable">
+              <thead>
+                <tr>
+                  <th>Job Function</th>
+                  <th>Job Level</th>
+                  <th>Role</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="bgPersonaBody">
+                <!-- Pre-populated with sample buying group -->
+              </tbody>
+            </table>
+          </div>
         </section>
       </section>
 
@@ -937,9 +1172,11 @@
             <thead>
               <tr>
                 <th>Account</th>
+                <th>Product</th>
                 <th>Personas</th>
                 <th>Completeness</th>
-                <th>Functions</th>
+                <th>DM Coverage</th>
+                <th>Role Coverage</th>
                 <th>Stage</th>
                 <th>BDR Trigger</th>
                 <th>Missing</th>
@@ -1001,6 +1238,79 @@
         distChart: document.getElementById("distChart"),
       };
 
+      // ── Buying Group Builder ─────────────────────────────────────────────
+      const JOB_FUNCTIONS = [
+        "Finance", "Information Technology (IT)", "Network Management",
+        "Operations", "Sales", "Marketing", "Customer Service",
+        "Procurement", "Human Resources", "Legal", "Clinical",
+        "Line of Business",
+      ];
+      const JOB_LEVELS = [
+        "C-Suite", "Vice President", "Director", "Manager",
+        "Senior", "Individual Contributor", "Associate",
+      ];
+      const BG_ROLES = [
+        "Decision-Maker", "Influencer", "Champion", "User", "Gatekeeper",
+      ];
+
+      // Default buying group (the sample from the product brief)
+      const DEFAULT_BG = [
+        { job_function: "Finance",                    job_level: "C-Suite",         role: "Decision-Maker" },
+        { job_function: "Information Technology (IT)", job_level: "C-Suite",         role: "Decision-Maker" },
+        { job_function: "Information Technology (IT)", job_level: "Director",        role: "Influencer" },
+        { job_function: "Network Management",          job_level: "Director",        role: "Influencer" },
+        { job_function: "Sales",                       job_level: "Director",        role: "Champion" },
+        { job_function: "Customer Service",            job_level: "Manager",         role: "User" },
+        { job_function: "Information Technology (IT)", job_level: "Manager",         role: "User" },
+        { job_function: "Procurement",                 job_level: "Manager",         role: "Gatekeeper" },
+        { job_function: "Operations",                  job_level: "Vice President",  role: "Influencer" },
+      ];
+
+      function makeFunctionSelect(val) {
+        return `<select class="bg-fn">${JOB_FUNCTIONS.map(f => `<option${f === val ? " selected" : ""}>${f}</option>`).join("")}</select>`;
+      }
+      function makeLevelSelect(val) {
+        return `<select class="bg-lvl">${JOB_LEVELS.map(l => `<option${l === val ? " selected" : ""}>${l}</option>`).join("")}</select>`;
+      }
+      function makeRoleSelect(val) {
+        return `<select class="bg-role">${BG_ROLES.map(r => `<option${r === val ? " selected" : ""}>${r}</option>`).join("")}</select>`;
+      }
+
+      function addPersonaRow(fn = JOB_FUNCTIONS[0], lvl = JOB_LEVELS[2], role = BG_ROLES[0]) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${makeFunctionSelect(fn)}</td>
+          <td>${makeLevelSelect(lvl)}</td>
+          <td>${makeRoleSelect(role)}</td>
+          <td><button class="remove-persona-btn" type="button">✕</button></td>
+        `;
+        tr.querySelector(".remove-persona-btn").addEventListener("click", () => tr.remove());
+        document.getElementById("bgPersonaBody").appendChild(tr);
+      }
+
+      function getBuyingGroupDefinition() {
+        const product_category = document.getElementById("bgProductCategory").value.trim();
+        const group_type = document.getElementById("bgGroupType").value;
+        const is_verified = document.getElementById("bgVerified").checked;
+        const personas = [];
+        document.querySelectorAll("#bgPersonaBody tr").forEach(tr => {
+          const fn   = tr.querySelector(".bg-fn")?.value;
+          const lvl  = tr.querySelector(".bg-lvl")?.value;
+          const role = tr.querySelector(".bg-role")?.value;
+          if (fn && lvl && role) personas.push({ job_function: fn, job_level: lvl, role });
+        });
+        if (!product_category || !personas.length) return null;
+        return { product_category, group_type, is_verified, personas };
+      }
+
+      function rolePillClass(role) {
+        if (role === "Decision-Maker") return "role-dm";
+        if (role === "Influencer")     return "role-inf";
+        if (role === "Champion")       return "role-champ";
+        if (role === "User")           return "role-user";
+        return "role-gate";
+      }
+
       initialize();
 
       async function initialize() {
@@ -1018,6 +1328,10 @@
             await handleCampaignFile(file);
           }
         });
+        document.getElementById("addPersonaBtn").addEventListener("click", () => addPersonaRow());
+        // Pre-populate with the default buying group
+        DEFAULT_BG.forEach(p => addPersonaRow(p.job_function, p.job_level, p.role));
+        document.getElementById("bgProductCategory").value = "Marketing Automation Platform";
         await fetchHealth();
       }
 
@@ -1120,6 +1434,8 @@
 
         const formData = new FormData(refs.campaignForm);
         const campaignConfig = Object.fromEntries(formData.entries());
+        const bgDef = getBuyingGroupDefinition();
+        if (bgDef) campaignConfig.buying_group_definition = bgDef;
         refs.scoreButton.disabled = true;
         setPortalStatus(`Uploading ${state.uploadedFileName || "lead file"} for scoring...`, "warn");
         refs.previewAction.textContent = "Calling /portal/import-score";
@@ -1216,28 +1532,108 @@
 
       function renderBreakdownRow(item, colSpan) {
         const bd = item.breakdown || {};
+        const an = item.analysis || {};
+        const bg = item.buying_group || {};
+        const story = item.selling_story;
+
         const fields = [
-          { label: "Fit",            key: "fit_score" },
-          { label: "Intent",         key: "intent_score" },
-          { label: "Partner Signal", key: "partner_signal_score" },
-          { label: "Client History", key: "client_history_score" },
-          { label: "Campaign Hist.", key: "campaign_history_score" },
-          { label: "Data Quality",   key: "data_quality_score" },
-          { label: "ICP Match",      key: "icp_match_score" },
+          { label: "Fit",            bdKey: "fit_score",              anKey: "fit" },
+          { label: "Intent",         bdKey: "intent_score",           anKey: "intent" },
+          { label: "Partner Signal", bdKey: "partner_signal_score",   anKey: "partner_signal" },
+          { label: "Client History", bdKey: "client_history_score",   anKey: "client_history" },
+          { label: "Campaign Hist.", bdKey: "campaign_history_score", anKey: "campaign_history" },
+          { label: "Data Quality",   bdKey: "data_quality_score",     anKey: "data_quality" },
+          { label: "ICP Match",      bdKey: "icp_match_score",        anKey: "icp_match" },
         ];
         const cards = fields.map(f => {
-          const val = bd[f.key] ?? "—";
+          const val = bd[f.bdKey] ?? "—";
           const pct = typeof val === "number" ? val : 0;
+          const signal = an[f.anKey] || {};
+          const drivers = signal.drivers || [];
+          const flags = signal.flags || [];
+          const detailHtml = [...drivers, ...flags].length
+            ? `<div class="signal-detail">
+                ${drivers.map(d => `<span class="signal-driver">${escapeHtml(d)}</span>`).join("")}
+                ${flags.map(g => `<span class="signal-flag">${escapeHtml(g)}</span>`).join("")}
+               </div>`
+            : "";
           return `<div class="breakdown-item">
             <div class="b-label">${f.label}</div>
             <div class="b-val">${val}</div>
             <div class="breakdown-mini-bar"><div class="breakdown-mini-fill" style="width:${pct}%"></div></div>
+            ${detailHtml}
           </div>`;
         }).join("");
+
+        // Persona coverage chips
+        let coverageHtml = "";
+        if ((bg.persona_coverage || []).length) {
+          const chips = bg.persona_coverage.map(p => {
+            const cls = p.covered ? "chip-covered" : "chip-uncovered";
+            const icon = p.covered ? "✓" : "✗";
+            const roleCls = rolePillClass(p.role);
+            return `<span class="coverage-chip ${cls}">
+              ${icon} <span class="role-pill ${roleCls}" style="padding:1px 6px;">${escapeHtml(p.role)}</span>
+              ${escapeHtml(p.job_function)} · ${escapeHtml(p.job_level)}
+              ${p.covered_by ? `<span style="color:var(--muted);font-weight:400;font-size:0.7rem;">(${escapeHtml(p.covered_by)})</span>` : ""}
+            </span>`;
+          }).join("");
+          const dmPct = bg.decision_maker_coverage_pct ?? null;
+          const product = bg.product_category ? `<span style="font-weight:700;">${escapeHtml(bg.product_category)}</span>` : "Buying Group";
+          const verifiedBadge = bg.is_verified
+            ? `<span class="badge deliver" style="font-size:0.72rem; padding:3px 8px;">✓ Verified</span>`
+            : (bg.group_type === "manual"
+              ? `<span class="badge champion" style="font-size:0.72rem; padding:3px 8px;">Manual</span>`
+              : `<span class="badge nurture" style="font-size:0.72rem; padding:3px 8px;">Recommended</span>`);
+          coverageHtml = `
+            <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(23,33,45,0.07);">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+                <span class="b-label" style="margin:0;">Buying Group — ${product}</span>
+                ${verifiedBadge}
+                ${dmPct !== null ? `<span style="font-size:0.78rem; color:var(--muted);">DM coverage: <strong>${dmPct}%</strong></span>` : ""}
+              </div>
+              <div class="coverage-grid">${chips}</div>
+            </div>`;
+        }
+
+        // Selling story
+        let storyHtml = "";
+        if (story) {
+          const motionCls = `motion-${story.motion}`;
+          const motionLabel = story.motion === "accelerate" ? "⚡ Accelerate" : story.motion === "nurture" ? "🌱 Nurture" : "⏸ Hold";
+          storyHtml = `
+            <div class="story-panel">
+              <div class="story-header">
+                <strong>Selling Story</strong>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span class="story-motion ${motionCls}">${motionLabel}</span>
+                  <span style="font-size:0.76rem; color:var(--muted);">Confidence: ${escapeHtml(story.confidence)}</span>
+                </div>
+              </div>
+              <div class="story-body">
+                <div class="story-section">
+                  <div class="story-label">Lead</div>
+                  <div class="story-text">${escapeHtml(story.lead_narrative)}</div>
+                </div>
+                <div class="story-section">
+                  <div class="story-label">Account</div>
+                  <div class="story-text">${escapeHtml(story.account_narrative)}</div>
+                </div>
+                <div class="story-section">
+                  <div class="story-label">Buying Group</div>
+                  <div class="story-text">${escapeHtml(story.buying_group_narrative)}</div>
+                </div>
+                <div class="story-action">${escapeHtml(story.recommended_action)}</div>
+              </div>
+            </div>`;
+        }
+
         const tr = document.createElement("tr");
         tr.className = "breakdown-row";
-        tr.innerHTML = `<td colspan="${colSpan}">
+        tr.innerHTML = `<td colspan="${colSpan}" style="padding:12px 16px 16px;">
           <div class="breakdown-grid">${cards}</div>
+          ${coverageHtml}
+          ${storyHtml}
         </td>`;
         return tr;
       }
@@ -1294,6 +1690,9 @@
             <td>
               <strong>${item.buying_group.unique_persona_count} persona${item.buying_group.unique_persona_count !== 1 ? "s" : ""}</strong>
               <div class="muted">BDR: ${item.buying_group.bdr_trigger ? "✓ Yes" : "No"}</div>
+              ${item.buying_group.decision_maker_coverage_pct != null && item.buying_group.product_category
+                ? `<div style="margin-top:3px;">${Object.entries(item.buying_group.role_coverage || {}).slice(0,2).map(([r,p]) => `<span class="role-pill ${rolePillClass(r)}">${r}: ${p}%</span>`).join("")}</div>`
+                : ""}
             </td>
             <td><button class="expand-btn" title="Show breakdown">▼</button></td>
           `;
@@ -1323,15 +1722,28 @@
         refs.reportTableBody.innerHTML = "";
 
         (report.report_items || []).forEach((item) => {
+          // Role coverage pills from account-level summary (take from last scored lead)
+          const roleCov = item.role_coverage || {};
+          const rolePillsHtml = Object.entries(roleCov).map(([r, p]) =>
+            `<span class="role-pill ${rolePillClass(r)}">${r}: ${p}%</span>`
+          ).join("") || "<span style='color:var(--muted);font-size:0.78rem;'>n/a</span>";
+
+          const dmPct = item.decision_maker_coverage_pct;
+          const dmHtml = dmPct != null
+            ? `<div class="score-gauge" style="min-width:70px;"><div class="score-top"><span class="score-number ${dmPct >= 50 ? 'score-deliver' : dmPct >= 1 ? 'score-review' : 'score-hold'}" style="font-size:1.1rem;">${dmPct}%</span></div><div class="score-bar-track"><div class="score-bar-fill ${dmPct >= 50 ? 'score-deliver' : dmPct >= 1 ? 'score-review' : 'score-hold'}" style="width:${dmPct}%"></div></div></div>`
+            : "<span style='color:var(--muted);font-size:0.78rem;'>n/a</span>";
+
           const row = document.createElement("tr");
           row.innerHTML = `
             <td>${escapeHtml(item.account_domain)}</td>
+            <td>${item.product_category ? escapeHtml(item.product_category) : "<span style='color:var(--muted);font-size:0.78rem;'>—</span>"}</td>
             <td>${item.unique_persona_count}</td>
             <td>${item.persona_completeness_score}%</td>
-            <td>${escapeHtml((item.function_coverage || []).join(", "))}</td>
+            <td>${dmHtml}</td>
+            <td style="white-space:nowrap;">${rolePillsHtml}</td>
             <td>${item.journey_stage_reached}</td>
             <td>${item.bdr_trigger ? "<span class='badge deliver'>Yes</span>" : "<span class='badge hold'>No</span>"}</td>
-            <td>${escapeHtml((item.missing_personas || []).join(", ") || "None")}</td>
+            <td style="font-size:0.82rem;">${escapeHtml((item.missing_personas || []).slice(0,3).join("; ") || "None")}</td>
           `;
           refs.reportTableBody.appendChild(row);
         });

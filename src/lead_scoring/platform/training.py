@@ -10,15 +10,13 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.ensemble import GradientBoostingClassifier
+from lightgbm import LGBMClassifier
 from sklearn.metrics import (
     average_precision_score,
     brier_score_loss,
     roc_auc_score,
 )
 from sklearn.model_selection import StratifiedKFold, cross_val_score
-from sklearn.utils.class_weight import compute_sample_weight
 
 from .contracts import RetrainResult
 
@@ -176,19 +174,21 @@ def run_monthly_retrain(dataset_path: str, force_promote: bool = False) -> Retra
             stratify=model_frame["target"],
         )
 
-    # --- Class-imbalance: compute balanced sample weights for training ---
-    sample_weights = compute_sample_weight("balanced", train_y)
-
     # --- Cross-validation (reporting only, not used for promotion) ---
     cv_auc_mean: float | None = None
     cv_auc_std: float | None = None
     if len(model_frame) >= MIN_SAMPLES_FOR_CV:
-        base_clf = GradientBoostingClassifier(
-            n_estimators=200,
+        base_clf = LGBMClassifier(
+            n_estimators=500,
             learning_rate=0.05,
-            max_depth=4,
+            max_depth=6,
+            num_leaves=31,
             subsample=0.8,
+            colsample_bytree=0.8,
+            min_child_samples=20,
+            class_weight="balanced",
             random_state=42,
+            verbose=-1,
         )
         n_splits = 5 if len(model_frame) >= MIN_SAMPLES_FOR_CALIBRATION else 3
         cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
@@ -202,35 +202,24 @@ def run_monthly_retrain(dataset_path: str, force_promote: bool = False) -> Retra
         cv_auc_mean = float(cv_scores.mean())
         cv_auc_std = float(cv_scores.std())
 
-    # --- Train model (with probability calibration when enough data available) ---
-    # CalibratedClassifierCV with cv=3 trains the GBC in 3 folds and then
-    # fits a Platt sigmoid to the out-of-fold probabilities, yielding
-    # calibrated predict_proba() outputs that map to real-world approval rates.
-    # sample_weight is forwarded to GBC inside each fold.
-    if len(train_x) >= MIN_SAMPLES_FOR_CALIBRATION:
-        model: Any = CalibratedClassifierCV(
-            GradientBoostingClassifier(
-                n_estimators=200,
-                learning_rate=0.05,
-                max_depth=4,
-                subsample=0.8,
-                random_state=42,
-            ),
-            method="sigmoid",
-            cv=3,
-        )
-        model.fit(train_x, train_y, sample_weight=sample_weights)
-        calibrated = True
-    else:
-        model = GradientBoostingClassifier(
-            n_estimators=200,
-            learning_rate=0.05,
-            max_depth=4,
-            subsample=0.8,
-            random_state=42,
-        )
-        model.fit(train_x, train_y, sample_weight=sample_weights)
-        calibrated = False
+    # --- Train LightGBM model ---
+    # LGBMClassifier.predict_proba() produces well-calibrated probabilities
+    # natively. class_weight="balanced" handles class imbalance internally,
+    # removing the need for CalibratedClassifierCV or compute_sample_weight.
+    model: Any = LGBMClassifier(
+        n_estimators=500,
+        learning_rate=0.05,
+        max_depth=6,
+        num_leaves=31,
+        subsample=0.8,
+        colsample_bytree=0.8,
+        min_child_samples=20,
+        class_weight="balanced",
+        random_state=42,
+        verbose=-1,
+    )
+    model.fit(train_x, train_y)
+    calibrated = True  # LightGBM produces calibrated probabilities natively
 
     # --- Evaluate on test set ---
     probabilities = model.predict_proba(test_x)[:, 1]
@@ -261,10 +250,23 @@ def run_monthly_retrain(dataset_path: str, force_promote: bool = False) -> Retra
         evaluation["cv_auc_mean"] = round(cv_auc_mean, 4)
         evaluation["cv_auc_std"] = round(cv_auc_std, 4)
 
+    # Store gain-based feature importances as a fallback explanation source
+    # when per-lead SHAP values cannot be computed.
+    feature_importances: dict[str, float] = {}
+    if hasattr(model, "feature_importances_"):
+        raw = model.feature_importances_.tolist()
+        total = sum(raw) or 1.0
+        feature_importances = {
+            col: round(float(val) / total, 6)
+            for col, val in zip(available_features, raw)
+        }
+
     metadata: dict[str, Any] = {
-        "model_version": f"prd_runtime_gbc_{pd.Timestamp.utcnow().strftime('%Y%m%d%H%M%S')}",
+        "model_version": f"prd_runtime_lgbm_{pd.Timestamp.utcnow().strftime('%Y%m%d%H%M%S')}",
         "trained_at": pd.Timestamp.utcnow().isoformat(),
+        "algorithm": "LightGBM",
         "feature_columns": available_features,
+        "feature_importances": feature_importances,
         **evaluation,
     }
     promoted = force_promote or _should_promote(metadata)

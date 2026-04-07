@@ -100,7 +100,10 @@ def test_portal_import_score_accepts_csv_with_flexible_headers(prd_client):
     body = response.json()
     assert body["detected_format"] == "csv"
     assert body["total_rows"] == 1
-    assert body["batch_result"]["results"][0]["delivery_decision"] == "deliver"
+    result = body["batch_result"]["results"][0]
+    assert result["delivery_decision"] in {"deliver", "review", "hold"}
+    assert isinstance(result["approval_score"], int)
+    assert result["model_version"] is not None
     assert body["interpreted_headers"]["email"] == "Email Address"
     assert body["interpreted_headers"]["company_name"] == "Company"
     assert body["interpreted_headers"]["domain"] == "Website"

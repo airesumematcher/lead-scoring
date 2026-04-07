@@ -10,7 +10,8 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-from lead_scoring.database.connection import init_db
+from lead_scoring.database.connection import DatabaseManager, init_db
+from lead_scoring.database.models import Feedback
 from lead_scoring.platform.engine import BuyingIntelligenceService
 from lead_scoring.portal import import_leads_file
 
@@ -20,6 +21,13 @@ from .schemas import (
     BuyingGroupPreviewRequest,
     BuyingGroupSummary,
     CampaignReport,
+    DriftStatusResponse,
+    FeedbackClearResponse,
+    FeedbackHistoryResponse,
+    FeedbackItem,
+    FeedbackStatusResponse,
+    FeedbackSubmitRequest,
+    FeedbackSubmitResponse,
     HealthCheckResponse,
     LeadScoreResult,
     OperationStatus,
@@ -164,4 +172,105 @@ async def import_and_score_portal_file(
         imported_leads=[PortalLeadSummary(**item) for item in artifacts.lead_summaries],
         batch_result=batch_result,
         campaign_report=campaign_report,
+    )
+
+
+@app.post("/feedback", response_model=FeedbackSubmitResponse, status_code=201, tags=["Feedback"])
+async def submit_feedback(request: FeedbackSubmitRequest) -> FeedbackSubmitResponse:
+    """Record an outcome label for a previously scored lead."""
+    db = DatabaseManager()
+    try:
+        db.add_feedback(
+            lead_id=request.lead_id,
+            outcome=request.outcome,
+            reason=request.reason,
+            notes=request.notes,
+            provided_score=request.original_score,
+            submitted_by=request.sal_decision_maker,
+        )
+        count = len(db.get_feedback_for_lead(request.lead_id))
+    finally:
+        db.close()
+    return FeedbackSubmitResponse(feedback_count_stored=count)
+
+
+@app.get("/feedback/status", response_model=FeedbackStatusResponse, tags=["Feedback"])
+async def feedback_status() -> FeedbackStatusResponse:
+    """Return aggregate feedback counts across all leads."""
+    db = DatabaseManager()
+    try:
+        all_feedback = db.get_all_feedback()
+    finally:
+        db.close()
+    by_outcome: dict[str, int] = {}
+    for fb in all_feedback:
+        by_outcome[fb.outcome] = by_outcome.get(fb.outcome, 0) + 1
+    return FeedbackStatusResponse(
+        total_feedback_items=len(all_feedback),
+        feedback_by_outcome=by_outcome,
+    )
+
+
+@app.get("/feedback/{lead_id}", response_model=FeedbackHistoryResponse, tags=["Feedback"])
+async def get_feedback_history(lead_id: str) -> FeedbackHistoryResponse:
+    """Return all feedback entries for a specific lead."""
+    db = DatabaseManager()
+    try:
+        entries = db.get_feedback_for_lead(lead_id)
+    finally:
+        db.close()
+    if not entries:
+        raise HTTPException(status_code=404, detail=f"No feedback found for lead {lead_id}")
+    return FeedbackHistoryResponse(
+        lead_id=lead_id,
+        feedback_count=len(entries),
+        feedback_history=[
+            FeedbackItem(
+                outcome=fb.outcome,
+                reason=fb.reason,
+                notes=fb.notes,
+                submitted_at=fb.submitted_at,
+            )
+            for fb in entries
+        ],
+    )
+
+
+@app.post("/feedback/clear", response_model=FeedbackClearResponse, tags=["Feedback"])
+async def clear_feedback() -> FeedbackClearResponse:
+    """Delete all stored feedback (use before retraining on fresh data)."""
+    db = DatabaseManager()
+    try:
+        removed = db.delete_all_feedback()
+    finally:
+        db.close()
+    return FeedbackClearResponse(message=f"Cleared {removed} feedback items")
+
+
+@app.get("/drift-status", response_model=DriftStatusResponse, tags=["Feedback"])
+async def drift_status() -> DriftStatusResponse:
+    """Return a simple model drift assessment based on accumulated feedback."""
+    db = DatabaseManager()
+    try:
+        all_feedback = db.get_all_feedback()
+    finally:
+        db.close()
+    total = len(all_feedback)
+    rejected = sum(1 for fb in all_feedback if fb.outcome == "rejected")
+    rejection_rate = rejected / total if total > 0 else 0.0
+    if total == 0:
+        recommendation = "Insufficient feedback to assess drift."
+    elif rejection_rate >= 0.4:
+        recommendation = "High rejection rate detected. Consider retraining the model."
+    elif rejection_rate >= 0.2:
+        recommendation = "Moderate rejection rate. Monitor closely before next scheduled retrain."
+    else:
+        recommendation = "Feedback signals look healthy. No immediate retraining needed."
+    return DriftStatusResponse(
+        feedback_count=total,
+        metrics={
+            "rejection_rate": round(rejection_rate, 3),
+            "rejected_count": rejected,
+            "recommendation": recommendation,
+        },
     )

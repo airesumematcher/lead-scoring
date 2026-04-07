@@ -17,6 +17,16 @@ class FunnelStage(str, Enum):
     BOFU = "BOFU"
 
 
+class BuyingGroupRole(str, Enum):
+    """The commercial role a persona plays within the buying committee."""
+
+    DECISION_MAKER = "Decision-Maker"
+    INFLUENCER = "Influencer"
+    CHAMPION = "Champion"
+    USER = "User"
+    GATEKEEPER = "Gatekeeper"
+
+
 class DeliveryDecision(str, Enum):
     """Operational action for campaign ops."""
 
@@ -39,6 +49,44 @@ class LeadQuadrant(str, Enum):
     NURTURE = "Nurture"
     CHAMPION = "Champion"
     MONITOR = "Monitor"
+
+
+class BuyingGroupPersonaSlot(BaseModel):
+    """A single required persona within a buying group definition."""
+
+    job_function: str
+    job_level: str
+    role: BuyingGroupRole
+
+
+class BuyingGroupDefinition(BaseModel):
+    """A product-level buying group (Recommended or Manually Created)."""
+
+    product_category: str
+    group_type: str = "recommended"  # "recommended" | "manual"
+    is_verified: bool = False
+    personas: list[BuyingGroupPersonaSlot] = Field(default_factory=list)
+
+
+class PersonaCoverageItem(BaseModel):
+    """Coverage status of one persona slot in the buying group definition."""
+
+    job_function: str
+    job_level: str
+    role: BuyingGroupRole
+    covered: bool
+    covered_by: str | None = None  # lead_id or email of the covering lead
+
+
+class SellingStory(BaseModel):
+    """Synthesized selling narrative for BDR / CS handoff."""
+
+    motion: str  # "accelerate" | "nurture" | "hold"
+    confidence: str  # "High" | "Medium" | "Low"
+    lead_narrative: str
+    account_narrative: str
+    buying_group_narrative: str
+    recommended_action: str
 
 
 class CampaignTaxonomy(BaseModel):
@@ -75,6 +123,7 @@ class CampaignContext(BaseModel):
     target_profile: TargetProfile = Field(default_factory=TargetProfile)
     taxonomy: CampaignTaxonomy = Field(default_factory=CampaignTaxonomy)
     history_approval_rate: float | None = Field(default=None, ge=0.0, le=1.0)
+    buying_group_definition: BuyingGroupDefinition | None = None
 
 
 class PartnerSignals(BaseModel):
@@ -189,6 +238,26 @@ class TopReason(BaseModel):
     message: str
 
 
+class SignalDetail(BaseModel):
+    """Per-signal explanation with sub-component drivers and penalty flags."""
+
+    score: int
+    drivers: list[str] = Field(default_factory=list)
+    flags: list[str] = Field(default_factory=list)
+
+
+class LeadAnalysis(BaseModel):
+    """Full per-signal breakdown explaining what drove each score."""
+
+    fit: SignalDetail
+    intent: SignalDetail
+    icp_match: SignalDetail
+    data_quality: SignalDetail
+    partner_signal: SignalDetail
+    client_history: SignalDetail
+    campaign_history: SignalDetail
+
+
 class LeadQualityBreakdown(BaseModel):
     """Layer 1 decomposition of the approval score."""
 
@@ -213,6 +282,13 @@ class BuyingGroupSummary(BaseModel):
     missing_personas: list[str]
     bdr_trigger: bool
     buying_group_score: int
+    # Structured buying group fields (populated when a BuyingGroupDefinition is present)
+    product_category: str | None = None
+    group_type: str = "inferred"
+    is_verified: bool = False
+    decision_maker_coverage_pct: int = 0
+    role_coverage: dict[str, int] = Field(default_factory=dict)
+    persona_coverage: list[PersonaCoverageItem] = Field(default_factory=list)
 
 
 class LeadScoreResult(BaseModel):
@@ -229,7 +305,9 @@ class LeadScoreResult(BaseModel):
     quadrant: LeadQuadrant
     breakdown: LeadQualityBreakdown
     top_reasons: list[TopReason]
+    analysis: LeadAnalysis
     buying_group: BuyingGroupSummary
+    selling_story: SellingStory | None = None
     score_audit_id: int | None = None
     scored_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
@@ -255,6 +333,9 @@ class CampaignReportItem(BaseModel):
     bdr_trigger: bool
     missing_personas: list[str]
     accounts_leads: list[str]
+    product_category: str | None = None
+    decision_maker_coverage_pct: int = 0
+    role_coverage: dict[str, int] = Field(default_factory=dict)
 
 
 class CampaignReport(BaseModel):

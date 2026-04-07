@@ -5,6 +5,14 @@ thresholds:
   high_fit_score: 65
   high_intent_score: 55
   bdr_trigger_personas: 2
+  bdr_dm_coverage_pct: 50
+
+buying_group_role_weights:
+  Decision-Maker: 0.40
+  Influencer: 0.25
+  Champion: 0.15
+  User: 0.10
+  Gatekeeper: 0.10
 
 weights:
   approval:
