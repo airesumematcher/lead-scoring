@@ -1,8 +1,12 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 > **Inherits**: `~/.claude/CLAUDE.md` (global AI CTO rules — quality bar, pushback patterns, Think→Build→Prove workflow). All global rules apply here.
 
 ---
 
-# CLAUDE.md — ACE Buying Intelligence Platform
+# ACE Buying Intelligence Platform
 
 This file is the authoritative guide for Claude Code when working in this repository.
 Read it before making any changes.
@@ -62,8 +66,9 @@ open http://localhost:8000/docs
 ## Running Tests
 
 ```bash
-pytest tests/test_prd_api.py   # primary PRD test suite
-pytest tests/                  # all tests
+pytest tests/test_prd_api.py          # primary PRD test suite
+pytest tests/                         # all tests
+pytest tests/test_prd_api.py::test_health_check  # single test
 ```
 
 ---
@@ -124,14 +129,16 @@ Check active mode: `GET /health` → `runtime_model` field.
 
 ## ML Model Details (training.py)
 
-**Algorithm**: `GradientBoostingClassifier` (sklearn) wrapped in `CalibratedClassifierCV(method='sigmoid')` for calibrated probabilities.
+**Algorithm**: `LGBMClassifier` (LightGBM) — produces calibrated probabilities natively, so no `CalibratedClassifierCV` wrapper is needed.
 
-**Training improvements** (as of March 2026):
-- **Time-based split**: if the dataset has `submitted_at`/`created_date`, the oldest 80% trains, newest 20% tests (prevents temporal leakage).
-- **Class imbalance**: `compute_sample_weight('balanced', y)` passed to `.fit()`.
-- **Probability calibration**: Platt scaling (`cv='prefit'`) on held-out data when ≥ 60 training samples.
-- **Cross-validation**: 5-fold stratified CV for AUC reporting when ≥ 30 samples.
+**Hyperparameters**: `n_estimators=500`, `learning_rate=0.05`, `max_depth=6`, `num_leaves=31`, `subsample=0.8`, `colsample_bytree=0.8`, `min_child_samples=20`, `class_weight="balanced"`, `random_state=42`.
+
+**Training pipeline**:
+- **Time-based split**: if the dataset has `submitted_at`/`created_date`/`created_at`/`scored_at`, the oldest 80% trains, newest 20% tests (prevents temporal leakage).
+- **Class imbalance**: handled via `class_weight="balanced"` directly in LightGBM.
+- **Cross-validation**: 5-fold stratified CV for AUC reporting when ≥ 30 samples (3-fold when < 60).
 - **Extended metrics stored in metadata**: `auc_roc`, `pr_auc`, `brier_score`, `ks_statistic`, `lift_at_10pct`, `lift_at_20pct`, `top_decile_precision`.
+- **Signal tables** (score distribution lookup tables) are always written to `models/prd_runtime/signal_tables.json`, even when model training is skipped (e.g., no `status` column or fewer than 5 matching features).
 
 **14 input features** (all 0–100 unless noted):
 `authority_score`, `fit_score`, `intent_score`, `partner_signal_score`,
@@ -139,7 +146,7 @@ Check active mode: `GET /health` → `runtime_model` field.
 `icp_match_score`, `buying_group_score`, `unique_persona_count`,
 `late_stage_signal`, `email_engagement_score`, `second_touch_signal`, `recency_score`
 
-**Known architectural limitation**: all 14 features are derived heuristic scores — the ML model never sees raw signals. This limits how much the GBC can improve over the weighted linear baseline. Future work: feed raw features (raw engagement counts, exact title text, domain flags) directly into the model.
+**Known architectural limitation**: all 14 features are derived heuristic scores — the ML model never sees raw signals. Future work: feed raw features (raw engagement counts, exact title text, domain flags) directly into the model.
 
 ---
 
@@ -182,6 +189,12 @@ the learning loop.
 | `data/prd_sample_payloads.py` | Sample `LeadRecord` JSON payloads for API testing |
 | `config/platform_config.yaml` | Runtime thresholds, weights, keyword mappings |
 | `config/scoring_config.yaml` | Legacy ACE model config (unused in PRD v2) |
+
+---
+
+## Root-Level Clutter (Ignore)
+
+The repo root contains ~30 `.md` status files (`PHASE1_COMPLETE.md`, `STEP7_RESULTS.md`, etc.) and many loose `.py` scripts (`train_xgb_simple.py`, `phase2_retrain_models.py`, `test_api.py`, etc.) from earlier development sessions. **These are not part of the active codebase.** The canonical source lives exclusively under `src/lead_scoring/`, `tests/`, `scripts/`, and `config/`.
 
 ---
 

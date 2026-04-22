@@ -24,8 +24,7 @@ setup(
         "requests>=2.31.0",
         "httpx>=0.28.0,<1.0.0",
         "python-multipart>=0.0.20",
-        "openpyxl>=3.1.5",
-        "xlrd>=2.0.1",
+        "python-calamine>=0.1.0",
     ],
     extras_require={
         "dev": ["pytest>=7.4.0", "pytest-cov>=4.1.0"],

@@ -9,11 +9,21 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from lead_scoring.database.connection import get_session
-from lead_scoring.database.models import ScoreAuditRecord
+from lead_scoring.database.models import Account, DealOutcome, ScoreAuditRecord
 
 from .classifiers import TitleNormalizer
 from .config import load_platform_config
-from .contracts import BuyingGroupSummary, LeadRecord, LeadScoreResult, PersonaSnapshot, PredictedOutcome
+from .contracts import (
+    AccountScoreResult,
+    BuyingGroupSummary,
+    DealOutcomeLabel,
+    FirmographicTrajectory,
+    LeadRecord,
+    LeadScoreResult,
+    PersonaSnapshot,
+    PredictedOutcome,
+    ThirdPartyIntentSignal,
+)
 
 
 class AuditRepository:
@@ -84,14 +94,21 @@ class AuditRepository:
         account_domain: str,
         client_id: str | None = None,
         window_days: int = 90,
+        platform_wide: bool = False,
     ) -> list[PersonaSnapshot]:
-        """Load recent approved personas for an account from persisted audits."""
+        """Load recent personas for an account from persisted audits.
+
+        Args:
+            platform_wide: When True, ignores client_id and aggregates personas
+                across all clients/campaigns for this domain. This gives a
+                truer picture of buying-group maturity than per-client isolation.
+        """
         cutoff = datetime.now(UTC) - timedelta(days=window_days)
         query = self.session.query(ScoreAuditRecord).filter(
             ScoreAuditRecord.account_domain == account_domain.lower(),
             ScoreAuditRecord.created_at >= cutoff,
         )
-        if client_id:
+        if client_id and not platform_wide:
             query = query.filter(ScoreAuditRecord.client_id == client_id)
 
         try:
@@ -120,6 +137,59 @@ class AuditRepository:
                 )
             )
         return personas
+
+    def upsert_account(self, result: AccountScoreResult) -> None:
+        """Persist or update the account-level score snapshot."""
+        record = (
+            self.session.query(Account)
+            .filter(Account.domain == result.domain.lower())
+            .first()
+        )
+        firmographic_json: str | None = None
+        intent_json: str | None = None
+
+        if record is None:
+            record = Account(domain=result.domain.lower())
+            self.session.add(record)
+
+        record.account_score = float(result.account_score)
+        record.intent_score = float(result.intent_score)
+        record.firmographic_score = float(result.firmographic_score)
+        record.buying_group_maturity = result.buying_group_maturity
+        record.last_enriched_at = result.scored_at
+        if firmographic_json is not None:
+            record.firmographic_snapshot = firmographic_json
+        if intent_json is not None:
+            record.intent_signals_snapshot = intent_json
+        self.session.commit()
+
+    def get_account(self, domain: str) -> Account | None:
+        """Retrieve a persisted account record by domain."""
+        try:
+            return (
+                self.session.query(Account)
+                .filter(Account.domain == domain.lower())
+                .first()
+            )
+        except Exception:
+            return None
+
+    def save_deal_outcome(self, label: DealOutcomeLabel) -> int:
+        """Persist a CRM deal outcome so retraining can use conversion instead of delivery."""
+        record = DealOutcome(
+            lead_id=label.lead_id,
+            account_domain=label.account_domain.lower(),
+            campaign_id=label.campaign_id,
+            opportunity_id=label.opportunity_id,
+            deal_stage=label.deal_stage,
+            closed_at=label.closed_at,
+            revenue_usd=label.revenue_usd,
+            crm_source=label.crm_source,
+        )
+        self.session.add(record)
+        self.session.commit()
+        self.session.refresh(record)
+        return int(record.id)
 
     def build_campaign_report_records(
         self,

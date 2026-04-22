@@ -15,6 +15,8 @@ from .brief_parser import CampaignBriefParser
 from .classifiers import AssetClassifier, CampaignModeInferrer, NormalisedTitle, TitleNormalizer
 from .config import load_platform_config
 from .contracts import (
+    AccountScoreRequest,
+    AccountScoreResult,
     BatchScoreResult,
     BuyingGroupDefinition,
     BuyingGroupRole,
@@ -22,18 +24,22 @@ from .contracts import (
     CampaignReport,
     CampaignReportItem,
     DeliveryDecision,
+    DealOutcomeLabel,
+    FirmographicTrajectory,
     FunnelStage,
     LeadAnalysis,
     LeadQuadrant,
     LeadQualityBreakdown,
     LeadRecord,
     LeadScoreResult,
+    MLEngagementSignals,
     PersonaCoverageItem,
     PersonaSnapshot,
     PredictedOutcome,
     RetrainResult,
     SellingStory,
     SignalDetail,
+    ThirdPartyIntentSignal,
     TopReason,
 )
 from .training import FEATURE_COLUMNS, MODEL_DIR, run_monthly_retrain
@@ -95,8 +101,6 @@ class BuyingIntelligenceService:
             fit_score=int(round(features["fit_score"])),
             intent_score=int(round(features["intent_score"])),
             partner_signal_score=int(round(features["partner_signal_score"])),
-            client_history_score=int(round(features["client_history_score"])),
-            campaign_history_score=int(round(features["campaign_history_score"])),
             data_quality_score=int(round(features["data_quality_score"])),
             icp_match_score=int(round(features["icp_match_score"])),
         )
@@ -124,6 +128,7 @@ class BuyingIntelligenceService:
             quadrant=quadrant,
             delivery_decision=delivery_decision,
         )
+        account_score = self._get_account_score_for_lead(lead)
         result = LeadScoreResult(
             lead_id=lead.lead_id,
             campaign_id=lead.campaign.campaign_id,
@@ -138,6 +143,7 @@ class BuyingIntelligenceService:
             top_reasons=top_reasons,
             analysis=analysis,
             buying_group=buying_group,
+            account_score=account_score,
             selling_story=selling_story,
         )
         if persist:
@@ -150,8 +156,20 @@ class BuyingIntelligenceService:
         return result
 
     def score_batch(self, leads: list[LeadRecord], persist: bool = True) -> BatchScoreResult:
-        """Score a batch of leads."""
-        results = [self.score_lead(lead, persist=persist) for lead in leads]
+        """Score a batch of leads, computing account score once per unique domain."""
+        # Pre-compute account score per unique domain to avoid redundant lookups
+        domain_account_scores: dict[str, AccountScoreResult | None] = {}
+        for lead in leads:
+            domain = lead.company.domain.lower()
+            if domain not in domain_account_scores:
+                domain_account_scores[domain] = self._get_account_score_for_lead(lead)
+
+        results = []
+        for lead in leads:
+            result = self.score_lead(lead, persist=persist)
+            result.account_score = domain_account_scores.get(lead.company.domain.lower())
+            results.append(result)
+
         return BatchScoreResult(
             total_leads=len(leads),
             scored_leads=len(results),
@@ -258,6 +276,307 @@ class BuyingIntelligenceService:
     def run_retrain(self, dataset_path: str, force_promote: bool = False) -> RetrainResult:
         """Trigger the monthly retrain workflow."""
         return run_monthly_retrain(dataset_path=dataset_path, force_promote=force_promote)
+
+    def score_account(self, request: AccountScoreRequest) -> AccountScoreResult:
+        """Score an account's readiness to buy — independent of any individual lead.
+
+        This is the account-first flow the VP described: identify in-market accounts
+        from external intent + firmographic trajectory signals, then surface which
+        persona slots are unfilled so targeted outreach can complete the buying group.
+        """
+        domain = request.domain.lower()
+
+        # Platform-wide persona aggregation (not scoped to a single client)
+        platform_personas = _load_personas_platform_wide(domain)
+        client_personas = (
+            _load_personas_for_client(domain, request.client_id)
+            if request.client_id
+            else platform_personas
+        )
+
+        # Deduplicate by email or function:seniority tuple
+        seen: dict[str, PersonaSnapshot] = {}
+        for persona in platform_personas:
+            key = persona.email or f"{persona.job_function}:{persona.seniority}:{persona.job_title}"
+            seen[key] = persona
+        unique_platform_personas = list(seen.values())
+
+        functions = sorted(
+            {(p.job_function or "unknown") for p in unique_platform_personas
+             if (p.status or "").lower() in {"approved", "accepted", "deliver", "delivered"}}
+        )
+
+        # --- Moody's ML engagement score (CS leads, display CTR, site visits, MLI topics) ---
+        moodys_raw, intent_tier, moodys_signals = self._compute_moodys_engagement_score(request.ml_engagement)
+        # Scale raw Moody's score (practical range 0–80+) to 0–100
+        moodys_engagement_score = int(round(min(100.0, moodys_raw / 80.0 * 100)))
+
+        # --- Intent score from third-party signals (Bombora/MLI surge) ---
+        intent_signals = request.intent_signals
+        third_party_intent = self._compute_intent_score(intent_signals)
+
+        # When ML engagement signals are present, blend them with third-party intent;
+        # otherwise fall through to third-party only (neutral baseline 50 when neither present).
+        has_ml_engagement = (
+            request.ml_engagement.cs_lead_count > 0
+            or request.ml_engagement.site_visits > 0
+            or request.ml_engagement.display_impressions > 0
+            or request.ml_engagement.trending_mli_topic_count > 0
+        )
+        intent_score: float
+        if has_ml_engagement and intent_signals:
+            intent_score = moodys_engagement_score * 0.6 + third_party_intent * 0.4
+        elif has_ml_engagement:
+            intent_score = float(moodys_engagement_score)
+        else:
+            intent_score = third_party_intent
+
+        in_market_signals: list[str] = []
+        in_market_signals.extend(moodys_signals)
+        for sig in sorted(intent_signals, key=lambda s: s.surge_score, reverse=True)[:3]:
+            in_market_signals.append(f"{sig.source.title()} surge on '{sig.topic}': {int(sig.surge_score)}/100")
+
+        # --- Firmographic score ---
+        firmographic = request.firmographic
+        firmographic_score, firmographic_signals = self._compute_firmographic_score(firmographic)
+        in_market_signals.extend(firmographic_signals)
+
+        # --- Buying group maturity ---
+        persona_count = len(functions)
+        if persona_count >= 3:
+            maturity = "mature"
+        elif persona_count >= 2:
+            maturity = "developing"
+        else:
+            maturity = "early"
+
+        buying_group_maturity_score = {"early": 20, "developing": 55, "mature": 90}[maturity]
+
+        # --- Composite account score ---
+        acct_weights = self.config.get("weights", {}).get("account", {})
+        account_score = int(round(min(100.0, (
+            intent_score * float(acct_weights.get("intent", 0.40))
+            + firmographic_score * float(acct_weights.get("firmographic", 0.25))
+            + buying_group_maturity_score * float(acct_weights.get("buying_group_maturity", 0.25))
+            + round((request.firmographic is not None and 0.10) or 5.0)  # data completeness bonus
+        ))))
+
+        # Missing personas (use default vertical mapping)
+        vertical_map = self.config.get("vertical_personas", {})
+        required = vertical_map.get("default", ["finance", "it", "operations"])
+        missing = [p for p in required if p not in functions]
+
+        # Recommended action
+        if account_score >= 70:
+            recommended_action = "accelerate"
+        elif account_score >= 45:
+            recommended_action = "engage"
+        else:
+            recommended_action = "hold"
+
+        result = AccountScoreResult(
+            domain=domain,
+            account_score=account_score,
+            intent_score=int(round(intent_score)),
+            firmographic_score=int(round(firmographic_score)),
+            moodys_engagement_score=moodys_engagement_score,
+            intent_tier=intent_tier,
+            buying_group_maturity=maturity,
+            persona_count_platform_wide=len(unique_platform_personas),
+            persona_count_client=len({
+                p.email or f"{p.job_function}:{p.seniority}"
+                for p in client_personas
+            }),
+            function_coverage=functions,
+            in_market_signals=in_market_signals,
+            missing_personas=missing,
+            recommended_action=recommended_action,
+        )
+
+        # Persist the account snapshot
+        repository = AuditRepository()
+        try:
+            repository.upsert_account(result)
+        finally:
+            repository.close()
+
+        return result
+
+    def record_deal_outcome(self, label: DealOutcomeLabel) -> bool:
+        """Persist a CRM deal outcome to close the learning loop beyond lead approval."""
+        repository = AuditRepository()
+        try:
+            repository.save_deal_outcome(label)
+            return True
+        finally:
+            repository.close()
+
+    def _compute_moodys_engagement_score(
+        self, ml: MLEngagementSignals
+    ) -> tuple[int, str, list[str]]:
+        """Compute a Moody's-style account engagement score from ML platform signals.
+
+        Returns (raw_score, intent_tier, human_readable_signals).
+
+        Scoring formula (mirrors Louise's live Moody's account scoring sheet):
+          raw_score = cs_score + ctr_score + site_visit_score + mli_score + top_topic_score
+          Intent tier: High ≥ 41, Med 20–40, Low < 20
+        """
+        cfg = self.config.get("moodys_account_scoring", {})
+        signals: list[str] = []
+
+        # --- CS Score (content syndication lead count) ---
+        cs_score = 0
+        for tier in cfg.get("cs_score_tiers", []):
+            min_l = tier.get("min_leads", 0)
+            max_l = tier.get("max_leads")
+            if max_l is None:
+                if ml.cs_lead_count >= min_l:
+                    cs_score = tier["score"]
+                    break
+            elif min_l <= ml.cs_lead_count <= max_l:
+                cs_score = tier["score"]
+                break
+        if cs_score > 0:
+            signals.append(f"CS leads: {ml.cs_lead_count} → {cs_score} pts")
+
+        # --- CTR Score (display click-through rate) ---
+        ctr_score = 0
+        for tier in cfg.get("ctr_score_tiers", []):
+            min_c = float(tier.get("min_ctr", 0.0))
+            max_c = tier.get("max_ctr")
+            if max_c is None:
+                if ml.display_ctr >= min_c:
+                    ctr_score = tier["score"]
+                    break
+            elif min_c <= ml.display_ctr <= float(max_c):
+                ctr_score = tier["score"]
+                break
+        if ctr_score > 0:
+            signals.append(f"Display CTR: {ml.display_ctr:.2f}% → {ctr_score} pts")
+
+        # --- Site Visit Score ---
+        sv_score = 0
+        for tier in cfg.get("site_visit_score_tiers", []):
+            min_v = tier.get("min_visits", 0)
+            max_v = tier.get("max_visits")
+            if max_v is None:
+                if ml.site_visits >= min_v:
+                    sv_score = tier["score"]
+                    break
+            elif min_v <= ml.site_visits <= max_v:
+                sv_score = tier["score"]
+                break
+        if sv_score > 0:
+            signals.append(f"Site visits: {ml.site_visits} → {sv_score} pts")
+
+        # --- MLI Score (number of trending topics = direct score) ---
+        mli_score = ml.trending_mli_topic_count
+        if mli_score > 0:
+            signals.append(f"Trending MLI topics: {mli_score}")
+
+        # --- Top Topic Score (TOFU=5, MOFU=10, BOFU=15) ---
+        top_topic_score = 0
+        if ml.top_mli_topic_stage is not None:
+            top_topic_score = {"TOFU": 5, "MOFU": 10, "BOFU": 15}[ml.top_mli_topic_stage.value]
+        elif ml.top_mli_topic:
+            # Infer stage from config topic map
+            topic_lower = ml.top_mli_topic.strip().lower()
+            topic_stages = self.config.get("intent_topic_stages", {})
+            for vertical_map in topic_stages.values():
+                if topic_lower in [t.lower() for t in vertical_map.get("bottom_funnel", [])]:
+                    top_topic_score = 15
+                    break
+                if topic_lower in [t.lower() for t in vertical_map.get("mid_funnel", [])]:
+                    top_topic_score = 10
+                    break
+                if topic_lower in [t.lower() for t in vertical_map.get("top_funnel", [])]:
+                    top_topic_score = 5
+                    break
+        if top_topic_score > 0 and ml.top_mli_topic:
+            signals.append(f"Top topic '{ml.top_mli_topic}': {top_topic_score} pts")
+
+        raw_score = cs_score + ctr_score + sv_score + mli_score + top_topic_score
+
+        # --- Intent Tier ---
+        thresholds = cfg.get("intent_thresholds", {"high": 41, "med": 20})
+        if raw_score >= int(thresholds.get("high", 41)):
+            intent_tier = "High"
+        elif raw_score >= int(thresholds.get("med", 20)):
+            intent_tier = "Med"
+        else:
+            intent_tier = "Low"
+
+        return raw_score, intent_tier, signals
+
+    def _compute_intent_score(self, signals: list[ThirdPartyIntentSignal]) -> float:
+        """Derive a 0-100 intent score from third-party surge signals with recency decay."""
+        if not signals:
+            return 50.0  # neutral baseline when no data supplied
+        now = datetime.now(UTC)
+        decay_half_life_days = 84  # 12-week half-life
+        weighted_sum = 0.0
+        weight_total = 0.0
+        for sig in signals:
+            week_end = sig.week_ending
+            if week_end.tzinfo is None:
+                week_end = week_end.replace(tzinfo=UTC)
+            age_days = max(0, (now - week_end).days)
+            decay = math.exp(-math.log(2) * age_days / decay_half_life_days)
+            weighted_sum += sig.surge_score * decay
+            weight_total += decay
+        return min(100.0, weighted_sum / weight_total) if weight_total > 0 else 50.0
+
+    def _compute_firmographic_score(
+        self, firmographic: FirmographicTrajectory | None
+    ) -> tuple[float, list[str]]:
+        """Derive a 0-100 firmographic readiness score and human-readable signals."""
+        if firmographic is None:
+            return 50.0, []  # neutral baseline when no data supplied
+
+        score = 50.0
+        signals: list[str] = []
+        now = datetime.now(UTC)
+
+        # Headcount growth signal
+        if firmographic.headcount_6m_delta is not None:
+            delta = firmographic.headcount_6m_delta
+            if delta >= 50:
+                score += 20
+                signals.append(f"Headcount growing (+{delta} in 6 months)")
+            elif delta >= 10:
+                score += 10
+                signals.append(f"Moderate headcount growth (+{delta} in 6 months)")
+            elif delta <= -20:
+                score -= 15
+                signals.append(f"Headcount shrinking ({delta} in 6 months)")
+
+        # Funding recency signal
+        if firmographic.latest_funding_date is not None:
+            fd = firmographic.latest_funding_date
+            if fd.tzinfo is None:
+                fd = fd.replace(tzinfo=UTC)
+            months_since = (now - fd).days / 30
+            if months_since <= 6:
+                score += 20
+                stage = firmographic.funding_stage or "recent"
+                amount = f"${firmographic.latest_funding_amount_usd:,}" if firmographic.latest_funding_amount_usd else ""
+                signals.append(f"Recent {stage} funding {amount} ({int(months_since)}mo ago)")
+            elif months_since <= 18:
+                score += 8
+                signals.append(f"Funding within 18 months ({firmographic.funding_stage or 'unknown stage'})")
+
+        # Executive change (buying cycle reset)
+        if firmographic.executive_change_90d:
+            score += 12
+            signals.append("Executive change in last 90 days — new buyer likely evaluating vendors")
+
+        # Tech stack adjacency (presence of any tech = enrichment available)
+        if firmographic.tech_stack:
+            score += 5
+            signals.append(f"Tech stack data available ({len(firmographic.tech_stack)} technologies)")
+
+        return min(100.0, max(0.0, score)), signals
 
     # Maps ML Platform job_level labels → internal seniority labels
     _JOB_LEVEL_MAP: dict[str, str] = {
@@ -711,16 +1030,12 @@ class BuyingIntelligenceService:
             if rate is not None
         ]
         partner_signal_score = round(100 * (sum(partner_rates) / len(partner_rates))) if partner_rates else 50
-        client_history_score = round(100 * (lead.account_signals.client_acceptance_rate_6m or 0.5))
-        campaign_history_score = round(100 * (lead.campaign.history_approval_rate or 0.5))
         data_quality_score = self._data_quality_score(lead, title)
         return {
             "authority_score": float(title.authority_score),
             "fit_score": float(fit_score),
             "intent_score": float(intent_score),
             "partner_signal_score": float(partner_signal_score),
-            "client_history_score": float(client_history_score),
-            "campaign_history_score": float(campaign_history_score),
             "data_quality_score": float(data_quality_score),
             "icp_match_score": float(icp_match_score),
             "buying_group_score": float(buying_group.buying_group_score),
@@ -777,8 +1092,6 @@ class BuyingIntelligenceService:
                 "fit_score",
                 "intent_score",
                 "partner_signal_score",
-                "client_history_score",
-                "campaign_history_score",
                 "data_quality_score",
                 "icp_match_score",
             )
@@ -814,8 +1127,6 @@ class BuyingIntelligenceService:
             "fit_score": f"Title and firmographic fit ({title.seniority} {title.job_function}) align strongly with the campaign ICP.",
             "intent_score": "Engagement depth and content stage signal active evaluation intent.",
             "partner_signal_score": "The partner's recent approval history is boosting delivery confidence.",
-            "client_history_score": "This client's recent acceptance rate supports a likely approval.",
-            "campaign_history_score": "Campaign-level approval history is above threshold.",
             "data_quality_score": "Contact and company data are complete and credible.",
             "icp_match_score": "Industry, geography, and role all match the inferred ICP profile.",
             "buying_group_score": (
@@ -835,8 +1146,6 @@ class BuyingIntelligenceService:
             "fit_score": f"Title or firmographic signals ({title.seniority} {title.job_function}) do not align well with the campaign ICP.",
             "intent_score": "Engagement is thin or misaligned with the asset stage — intent is unclear.",
             "partner_signal_score": "This partner's recent approval history is below the campaign baseline.",
-            "client_history_score": "This client has a lower-than-average acceptance rate for similar leads.",
-            "campaign_history_score": "Campaign-level approval history is below threshold — elevated risk.",
             "data_quality_score": "Data quality issues (missing title, generic domain, or incomplete firmographics) are reducing confidence.",
             "icp_match_score": "Industry, geography, or role mismatch against the inferred ICP is reducing the score.",
             "buying_group_score": "Buying-group coverage is incomplete — the account has not reached BDR readiness.",
@@ -1064,49 +1373,12 @@ class BuyingIntelligenceService:
 
         ps_detail = SignalDetail(score=int(round(features["partner_signal_score"])), drivers=ps_drivers, flags=ps_flags)
 
-        # --- Client History ---
-        ch_drivers, ch_flags = [], []
-        rate = lead.account_signals.client_acceptance_rate_6m
-        if rate is not None:
-            ch_drivers.append(f"Client acceptance rate (6m): {int(rate * 100)}%")
-            if rate >= 0.7:
-                ch_drivers.append("Strong client acceptance history")
-            elif rate < 0.4:
-                ch_flags.append("Low client acceptance rate — elevated rejection risk")
-        else:
-            ch_flags.append("No client acceptance history — defaulted to 50% (neutral)")
-
-        if lead.account_signals.account_id:
-            ch_drivers.append(f"Account ID: {lead.account_signals.account_id}")
-
-        ch_detail = SignalDetail(score=int(round(features["client_history_score"])), drivers=ch_drivers, flags=ch_flags)
-
-        # --- Campaign History ---
-        cah_drivers, cah_flags = [], []
-        camp_rate = lead.campaign.history_approval_rate
-        if camp_rate is not None:
-            cah_drivers.append(f"Campaign approval rate (historical): {int(camp_rate * 100)}%")
-            if camp_rate >= 0.65:
-                cah_drivers.append("Above-average campaign approval history")
-            elif camp_rate < 0.40:
-                cah_flags.append("Below-average campaign approval rate — lower confidence in delivery")
-        else:
-            cah_flags.append("No campaign approval history — defaulted to 50% (neutral)")
-
-        cah_detail = SignalDetail(
-            score=int(round(features["campaign_history_score"])),
-            drivers=cah_drivers,
-            flags=cah_flags,
-        )
-
         return LeadAnalysis(
             fit=fit_detail,
             intent=intent_detail,
             icp_match=icp_detail,
             data_quality=dq_detail,
             partner_signal=ps_detail,
-            client_history=ch_detail,
-            campaign_history=cah_detail,
         )
 
     def _calculate_engagement_metrics(self, events, stage_weight: float) -> dict[str, float]:
@@ -1192,7 +1464,7 @@ class BuyingIntelligenceService:
     def _load_persisted_personas(account_domain: str, client_id: str) -> list[PersonaSnapshot]:
         repository = AuditRepository()
         try:
-            return repository.get_recent_personas(account_domain, client_id=client_id)
+            return repository.get_recent_personas(account_domain, client_id=client_id, platform_wide=False)
         finally:
             repository.close()
 
@@ -1215,6 +1487,22 @@ class BuyingIntelligenceService:
         latest = max(lead.engagement_events, key=lambda event: event.occurred_at)
         return latest.asset_name
 
+    def _get_account_score_for_lead(self, lead: LeadRecord) -> AccountScoreResult | None:
+        """Compute account score from a lead's available signals."""
+        try:
+            from .contracts import MLEngagementSignals
+            visit_count = lead.account_signals.account_visit_count or 0
+            request = AccountScoreRequest(
+                domain=lead.company.domain,
+                client_id=lead.campaign.client_id,
+                firmographic=lead.account_signals.firmographic,
+                intent_signals=lead.account_signals.intent_signals,
+                ml_engagement=MLEngagementSignals(site_visits=visit_count),
+            )
+            return self.score_account(request)
+        except Exception:
+            return None
+
     @staticmethod
     def _load_runtime_bundle() -> tuple[Any, dict[str, Any]] | None:
         model_path = MODEL_DIR / "lead_quality_model.pkl"
@@ -1229,3 +1517,25 @@ class BuyingIntelligenceService:
             return model, metadata
         except Exception:
             return None
+
+
+# ---------------------------------------------------------------------------
+# Module-level helpers used by BuyingIntelligenceService.score_account()
+# ---------------------------------------------------------------------------
+
+def _load_personas_platform_wide(account_domain: str) -> list[PersonaSnapshot]:
+    """Load all personas for this domain across every client/campaign (90-day window)."""
+    repository = AuditRepository()
+    try:
+        return repository.get_recent_personas(account_domain, platform_wide=True)
+    finally:
+        repository.close()
+
+
+def _load_personas_for_client(account_domain: str, client_id: str) -> list[PersonaSnapshot]:
+    """Load personas scoped to a single client (used for per-client persona count)."""
+    repository = AuditRepository()
+    try:
+        return repository.get_recent_personas(account_domain, client_id=client_id, platform_wide=False)
+    finally:
+        repository.close()

@@ -8,9 +8,12 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from lead_scoring.platform.contracts import (
+    AccountScoreRequest,
+    AccountScoreResult,
     BatchScoreResult,
     BuyingGroupSummary,
     CampaignReport,
+    DealOutcomeLabel,
     LeadRecord,
     LeadScoreResult,
     OutcomeLabel,
@@ -61,6 +64,14 @@ class PortalLeadSummary(BaseModel):
     domain: str
 
 
+class AccountSummary(BaseModel):
+    """Account-level summary for portal import responses (domains with 2+ leads)."""
+
+    domain: str
+    lead_count: int
+    account_score: AccountScoreResult | None = None
+
+
 class PortalImportResponse(BaseModel):
     """Combined import, score, and report response for the upload portal."""
 
@@ -72,6 +83,7 @@ class PortalImportResponse(BaseModel):
     imported_leads: list[PortalLeadSummary]
     batch_result: BatchScoreResult
     campaign_report: CampaignReport
+    accounts: list[AccountSummary] = Field(default_factory=list)
 
 
 class FeedbackSubmitRequest(BaseModel):
@@ -132,11 +144,15 @@ class DriftStatusResponse(BaseModel):
 
 
 __all__ = [
+    "AccountScoreRequest",
+    "AccountScoreResult",
+    "AccountSummary",
     "BatchScoreRequest",
     "BatchScoreResult",
     "BuyingGroupPreviewRequest",
     "BuyingGroupSummary",
     "CampaignReport",
+    "DealOutcomeLabel",
     "HealthCheckResponse",
     "LeadScoreResult",
     "OperationStatus",

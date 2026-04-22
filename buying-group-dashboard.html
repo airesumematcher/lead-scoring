@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buying Group Dashboard — ACE Lead Scoring</title>
+    <style>
+      /* ── Design tokens (same as index.html) ─────────────────────────── */
+      :root {
+        --bg:      #f5f0e8;
+        --surface: #ffffff;
+        --surface-2: #f9f7f4;
+        --surface-3: #f2ede4;
+        --border:  rgba(23,33,45,0.09);
+        --border-strong: rgba(23,33,45,0.16);
+        --ink:     #17212d;
+        --ink-2:   #3d4d5c;
+        --muted:   #6b7a8d;
+        --accent:  #c04e28;
+        --accent-2:#9a3a1a;
+        --teal:    #0c7060;
+        --teal-bg: rgba(12,112,96,0.08);
+        --gold:    #b57a20;
+        --gold-bg: rgba(181,122,32,0.10);
+        --red:     #b03030;
+        --red-bg:  rgba(176,48,48,0.08);
+        --blue:    #2b5ca0;
+        --blue-bg: rgba(43,92,160,0.09);
+        --indigo:  #4338ca;
+        --indigo-bg: rgba(67,56,202,0.08);
+        --shadow-sm: 0 1px 3px rgba(23,33,45,0.08), 0 4px 16px rgba(23,33,45,0.06);
+        --shadow:    0 2px 8px rgba(23,33,45,0.08), 0 12px 32px rgba(23,33,45,0.08);
+        --r-sm: 6px;
+        --r:    10px;
+        --r-lg: 14px;
+        --r-xl: 18px;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; }
+      html { scroll-behavior: smooth; font-size: 14px; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* ── Top nav ─────────────────────────────────────────────────────── */
+      .topnav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        height: 48px;
+      }
+      .nav-brand { display: flex; align-items: center; gap: 10px; }
+      .nav-logo {
+        width: 26px; height: 26px; border-radius: 6px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 0.72rem; font-weight: 800; letter-spacing: -0.02em;
+      }
+      .nav-title { font-size: 0.875rem; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+      .nav-sep { width: 1px; height: 16px; background: var(--border-strong); }
+      .nav-sub { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
+      .nav-right { display: flex; align-items: center; gap: 8px; }
+      .nav-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 10px; font: inherit; font-size: 0.75rem; font-weight: 600;
+        border-radius: var(--r-sm); border: 1px solid var(--border);
+        background: var(--surface); color: var(--ink-2); cursor: pointer;
+        text-decoration: none; white-space: nowrap;
+      }
+      .nav-btn:hover { background: var(--surface-3); }
+
+      /* ── Page layout ─────────────────────────────────────────────────── */
+      .page { max-width: 1200px; margin: 0 auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 20px; }
+
+      /* ── Page header ─────────────────────────────────────────────────── */
+      .page-header {
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+      }
+      .page-title-block {}
+      .page-title { font-size: 1.125rem; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); margin: 0 0 2px; }
+      .page-sub { font-size: 0.78rem; color: var(--muted); margin: 0; }
+      .filter-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .filter-select {
+        padding: 5px 10px; font: inherit; font-size: 0.78rem; font-weight: 500;
+        border: 1px solid var(--border); border-radius: var(--r-sm);
+        background: var(--surface); color: var(--ink-2); cursor: pointer;
+      }
+      .btn-export {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 14px; font: inherit; font-size: 0.8125rem; font-weight: 700;
+        border-radius: var(--r); border: 0; cursor: pointer;
+        background: var(--accent); color: #fff;
+        box-shadow: 0 1px 4px rgba(192,78,40,0.30);
+      }
+
+      /* ── Tab nav ─────────────────────────────────────────────────────── */
+      .tab-nav {
+        display: flex; gap: 0; border-bottom: 2px solid var(--border);
+      }
+      .tab-btn {
+        padding: 8px 18px; font: inherit; font-size: 0.8125rem; font-weight: 600;
+        background: transparent; border: 0; border-bottom: 2px solid transparent;
+        margin-bottom: -2px; color: var(--muted); cursor: pointer; letter-spacing: -0.01em;
+        transition: color 0.12s, border-color 0.12s;
+      }
+      .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+      .tab-btn:hover:not(.active) { color: var(--ink-2); }
+
+      .tab-panel { display: none; }
+      .tab-panel.active { display: flex; flex-direction: column; gap: 20px; }
+
+      /* ── Cards ───────────────────────────────────────────────────────── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-xl);
+        box-shadow: var(--shadow-sm);
+      }
+      .card-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 18px; border-bottom: 1px solid var(--border); gap: 8px;
+      }
+      .card-title-block {}
+      .card-title { font-size: 0.875rem; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; margin: 0 0 1px; }
+      .card-subtitle { font-size: 0.72rem; color: var(--muted); margin: 0; }
+      .card-body { padding: 18px; }
+
+      /* ── Section label ───────────────────────────────────────────────── */
+      .section-label {
+        font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+        color: var(--muted); font-weight: 700; margin: 0 0 10px;
+      }
+
+      /* ── Badges / pills ──────────────────────────────────────────────── */
+      .badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 2px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 700;
+        letter-spacing: 0.03em; white-space: nowrap;
+      }
+      .badge-dm     { background: var(--blue-bg);   color: var(--blue); }
+      .badge-champ  { background: var(--teal-bg);   color: var(--teal); }
+      .badge-infl   { background: var(--gold-bg);   color: var(--gold); }
+      .badge-gate   { background: var(--surface-3); color: var(--muted); border: 1px solid var(--border); }
+      .badge-out    { background: var(--red-bg);    color: var(--red); }
+      .badge-warn   { background: var(--gold-bg);   color: var(--gold); }
+      .badge-ok     { background: var(--teal-bg);   color: var(--teal); }
+      .badge-info   { background: var(--indigo-bg); color: var(--indigo); }
+
+      /* ── Delta ───────────────────────────────────────────────────────── */
+      .delta { font-size: 0.72rem; font-weight: 700; }
+      .delta.up   { color: var(--teal); }
+      .delta.down { color: var(--red); }
+
+      /* ── ─────────────────────────────────────────────────────────────── */
+      /*     SECTION 1: Buying Committee Coverage                           */
+      /* ── ─────────────────────────────────────────────────────────────── */
+
+      .coverage-layout {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 24px;
+        align-items: start;
+      }
+
+      .donut-wrap {
+        display: flex; flex-direction: column; align-items: center; gap: 12px;
+      }
+
+      .donut-svg { position: relative; }
+
+      .donut-center-label {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        text-align: center; pointer-events: none;
+      }
+      .donut-center-num  { font-size: 1.5rem; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; display: block; }
+      .donut-center-sub  { font-size: 0.65rem; color: var(--muted); font-weight: 600; display: block; margin-top: 1px; }
+
+      .donut-legend { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+      .donut-legend-item {
+        display: flex; align-items: center; justify-content: space-between;
+        font-size: 0.72rem; gap: 6px;
+      }
+      .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+      .legend-label { color: var(--ink-2); font-weight: 500; flex: 1; }
+      .legend-val { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+      .roles-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .role-card {
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        padding: 12px 14px;
+        background: var(--surface-2);
+        display: flex; flex-direction: column; gap: 4px;
+      }
+      .role-card-top { display: flex; align-items: center; justify-content: space-between; }
+      .role-card-label { font-size: 0.72rem; font-weight: 700; color: var(--ink-2); }
+      .role-card-num { font-size: 1.25rem; font-weight: 800; color: var(--ink); letter-spacing: -0.03em; }
+      .role-card-sub { font-size: 0.68rem; color: var(--muted); }
+
+      .intent-panel {
+        margin-top: 14px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        background: var(--indigo-bg);
+        display: flex; align-items: center; gap: 14px;
+      }
+      .intent-score-num { font-size: 1.75rem; font-weight: 800; color: var(--indigo); letter-spacing: -0.03em; flex-shrink: 0; }
+      .intent-score-detail { flex: 1; }
+      .intent-score-label { font-size: 0.72rem; font-weight: 700; color: var(--indigo); margin-bottom: 6px; }
+      .intent-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+      .intent-bar-label { font-size: 0.65rem; color: var(--muted); width: 110px; flex-shrink: 0; }
+      .intent-bar-track { flex: 1; height: 4px; background: var(--surface-3); border-radius: 999px; overflow: hidden; }
+      .intent-bar-fill  { height: 100%; border-radius: 999px; background: var(--indigo); }
+      .intent-bar-val   { font-size: 0.65rem; font-weight: 700; color: var(--indigo); width: 24px; text-align: right; }
+
+      .empty-state-card {
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        padding: 28px 20px; text-align: center;
+        border: 1.5px dashed var(--border-strong); border-radius: var(--r-lg);
+        background: var(--surface-2);
+      }
+      .empty-icon { font-size: 1.75rem; margin-bottom: 4px; }
+      .empty-title { font-size: 0.8125rem; font-weight: 700; color: var(--ink-2); }
+      .empty-sub { font-size: 0.72rem; color: var(--muted); max-width: 280px; line-height: 1.5; }
+      .empty-cta { font-size: 0.78rem; font-weight: 700; color: var(--accent); text-decoration: none; margin-top: 4px; }
+      .empty-cta:hover { text-decoration: underline; }
+
+      /* ── ─────────────────────────────────────────────────────────────── */
+      /*     SECTION 2: Lead Table with Role Badge                          */
+      /* ── ─────────────────────────────────────────────────────────────── */
+
+      .table-filter-bar {
+        display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;
+      }
+      .table-filter-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+
+      .leads-table { width: 100%; border-collapse: collapse; }
+      .leads-table th {
+        font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em;
+        font-weight: 700; color: var(--muted); padding: 0 10px 8px;
+        text-align: left; border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+      .leads-table td {
+        padding: 10px; font-size: 0.78rem; color: var(--ink-2);
+        border-bottom: 1px solid var(--border); vertical-align: middle;
+      }
+      .leads-table tr:last-child td { border-bottom: 0; }
+      .leads-table tr:hover td { background: var(--surface-2); }
+
+      .lead-name { font-weight: 700; color: var(--ink); }
+      .lead-email { font-size: 0.72rem; color: var(--muted); }
+
+      .score-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 36px; height: 22px; border-radius: var(--r-sm);
+        font-size: 0.75rem; font-weight: 800;
+      }
+      .score-deliver { background: var(--teal-bg); color: var(--teal); }
+      .score-review  { background: var(--gold-bg);  color: var(--gold); }
+      .score-hold    { background: var(--red-bg);   color: var(--red); }
+
+      .delivery-chip {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 2px 8px; border-radius: 999px; font-size: 0.68rem; font-weight: 700;
+      }
+      .dc-deliver { background: var(--teal-bg); color: var(--teal); }
+      .dc-review  { background: var(--gold-bg); color: var(--gold); }
+      .dc-hold    { background: var(--red-bg);  color: var(--red); }
+
+      .incomplete-flag {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 0.65rem; font-weight: 600; color: var(--gold); white-space: nowrap;
+      }
+
+      /* ── ─────────────────────────────────────────────────────────────── */
+      /*     SECTION 3: Persona Coverage                                    */
+      /* ── ─────────────────────────────────────────────────────────────── */
+
+      .persona-bars { display: flex; flex-direction: column; gap: 10px; }
+      .persona-bar-row { display: flex; align-items: center; gap: 10px; }
+      .persona-bar-label { font-size: 0.75rem; font-weight: 600; color: var(--ink-2); width: 140px; flex-shrink: 0; }
+      .persona-bar-track { flex: 1; height: 20px; border-radius: var(--r-sm); background: var(--surface-3); overflow: hidden; display: flex; }
+      .persona-bar-in   { background: var(--blue); height: 100%; }
+      .persona-bar-out  { background: var(--gold); height: 100%; }
+      .persona-bar-nums { font-size: 0.72rem; color: var(--muted); width: 60px; text-align: right; flex-shrink: 0; }
+
+      .persona-legend {
+        display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap;
+      }
+      .persona-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+      .legend-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+      .swatch-in  { background: var(--blue); }
+      .swatch-out { background: var(--gold); }
+
+      .expansion-callout {
+        margin-top: 14px; padding: 12px 16px;
+        border: 1px solid rgba(181,122,32,0.30); border-radius: var(--r-lg);
+        background: var(--gold-bg);
+        display: flex; align-items: flex-start; gap: 10px;
+      }
+      .callout-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+      .callout-body {}
+      .callout-text { font-size: 0.78rem; color: var(--ink-2); line-height: 1.5; margin: 0 0 4px; }
+      .callout-cta { font-size: 0.75rem; font-weight: 700; color: var(--gold); text-decoration: none; }
+      .callout-cta:hover { text-decoration: underline; }
+
+      /* ── Info banner ─────────────────────────────────────────────────── */
+      .info-banner {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 14px; border-radius: var(--r); font-size: 0.72rem;
+        background: var(--indigo-bg); border: 1px solid rgba(67,56,202,0.18);
+        color: var(--indigo); margin-bottom: 4px;
+      }
+      .info-banner svg { flex-shrink: 0; }
+
+      /* ── State toggle (demo) ─────────────────────────────────────────── */
+      .demo-toggle {
+        display: flex; align-items: center; gap: 8px;
+        padding: 6px 12px; background: var(--surface);
+        border: 1px solid var(--border); border-radius: var(--r);
+        font-size: 0.72rem; color: var(--muted);
+      }
+      .demo-toggle label { display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: 600; }
+      .demo-toggle input { accent-color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <!-- ── Nav ───────────────────────────────────────────────────────── -->
+    <nav class="topnav">
+      <div class="nav-brand">
+        <div class="nav-logo">ACE</div>
+        <span class="nav-title">Lead Scoring</span>
+        <div class="nav-sep"></div>
+        <span class="nav-sub">Leads Dashboard</span>
+      </div>
+      <div class="nav-right">
+        <div class="demo-toggle">
+          <label>
+            <input type="checkbox" id="emptyStateToggle" onchange="toggleEmptyState(this.checked)" />
+            Show empty state (no buying group)
+          </label>
+        </div>
+        <a href="index.html" class="nav-btn">← Back to Scoring Portal</a>
+      </div>
+    </nav>
+
+    <!-- ── Page ──────────────────────────────────────────────────────── -->
+    <div class="page">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div class="page-title-block">
+          <h1 class="page-title">Buying Group Dashboard</h1>
+          <p class="page-sub">Cloud Platform Campaign · Techwave Corp · Apr 1–20, 2026 · <strong>Mockup — buying group additions only</strong></p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select class="filter-select"><option>All Accounts</option><option>Magna.com</option><option>Apex Systems</option></select>
+          <select class="filter-select"><option>All Campaigns</option><option>Cloud Platform Q2</option></select>
+          <button class="btn-export">↓ Export Leads</button>
+        </div>
+      </div>
+
+      <!-- Info banner -->
+      <div class="info-banner">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v5M8 5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Buying group data shown for campaigns with a verified buying committee. Toggle "empty state" in the top-right to preview unconfigured state.
+      </div>
+
+      <!-- Tab nav -->
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('performance', this)">Performance</button>
+        <button class="tab-btn" onclick="switchTab('insights', this)">Insights</button>
+        <button class="tab-btn" onclick="switchTab('leads', this)">Leads</button>
+      </div>
+
+      <!-- ══ TAB 1: PERFORMANCE ══════════════════════════════════════════ -->
+      <div id="tab-performance" class="tab-panel active">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <div class="card-title">Buying Committee Coverage</div>
+              <div class="card-subtitle">Section D — Performance tab · Roles with ≥1 delivered lead</div>
+            </div>
+            <span class="badge badge-ok">3 of 4 roles covered</span>
+          </div>
+          <div class="card-body">
+
+            <!-- ── Configured state ─────────────────────────────────── -->
+            <div id="coverage-configured">
+              <div class="coverage-layout">
+
+                <!-- Donut -->
+                <div class="donut-wrap">
+                  <div style="position:relative;width:160px;height:160px;">
+                    <svg width="160" height="160" viewBox="0 0 160 160">
+                      <!-- Background ring -->
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#f2ede4" stroke-width="20"/>
+                      <!-- Decision Maker: 32% = 120.6° → stroke 113.1 gap 231.9 -->
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#2b5ca0" stroke-width="20"
+                        stroke-dasharray="75.4 301.6" stroke-dashoffset="75.4" transform="rotate(-90 80 80)"/>
+                      <!-- Champion: 28% = ~66px -->
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#0c7060" stroke-width="20"
+                        stroke-dasharray="66 310" stroke-dashoffset="0" transform="rotate(-90 80 80)"/>
+                      <!-- Influencer: 24% -->
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#b57a20" stroke-width="20"
+                        stroke-dasharray="56.5 320.5" stroke-dashoffset="-66" transform="rotate(-90 80 80)"/>
+                      <!-- Gatekeeper: 0% – gray ring gap -->
+                      <circle cx="80" cy="80" r="60" fill="none" stroke="#e8e3da" stroke-width="20"
+                        stroke-dasharray="75.4 301.6" stroke-dashoffset="-122.5" transform="rotate(-90 80 80)"/>
+                    </svg>
+                    <div class="donut-center-label">
+                      <span class="donut-center-num">75%</span>
+                      <span class="donut-center-sub">covered</span>
+                    </div>
+                  </div>
+
+                  <!-- Legend -->
+                  <div class="donut-legend">
+                    <div class="donut-legend-item">
+                      <div class="legend-dot" style="background:#2b5ca0"></div>
+                      <span class="legend-label">Decision Maker</span>
+                      <span class="legend-val">32%</span>
+                    </div>
+                    <div class="donut-legend-item">
+                      <div class="legend-dot" style="background:#0c7060"></div>
+                      <span class="legend-label">Champion</span>
+                      <span class="legend-val">28%</span>
+                    </div>
+                    <div class="donut-legend-item">
+                      <div class="legend-dot" style="background:#b57a20"></div>
+                      <span class="legend-label">Influencer</span>
+                      <span class="legend-val">24%</span>
+                    </div>
+                    <div class="donut-legend-item">
+                      <div class="legend-dot" style="background:#e8e3da"></div>
+                      <span class="legend-label">Gatekeeper</span>
+                      <span class="legend-val" style="color:#b03030">0 leads</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Role KPI cards + Intent score -->
+                <div>
+                  <div class="roles-grid">
+                    <div class="role-card">
+                      <div class="role-card-top">
+                        <span class="badge badge-dm">DM</span>
+                        <span class="delta up">↑12%</span>
+                      </div>
+                      <div class="role-card-num">18</div>
+                      <div class="role-card-sub">Decision Maker leads</div>
+                    </div>
+                    <div class="role-card">
+                      <div class="role-card-top">
+                        <span class="badge badge-champ">Champion</span>
+                        <span class="delta up">↑8%</span>
+                      </div>
+                      <div class="role-card-num">14</div>
+                      <div class="role-card-sub">Champion leads</div>
+                    </div>
+                    <div class="role-card">
+                      <div class="role-card-top">
+                        <span class="badge badge-infl">Influencer</span>
+                        <span class="delta down">↓3%</span>
+                      </div>
+                      <div class="role-card-num">11</div>
+                      <div class="role-card-sub">Influencer leads</div>
+                    </div>
+                    <div class="role-card" style="border-color:rgba(176,48,48,0.2);background:var(--red-bg);">
+                      <div class="role-card-top">
+                        <span class="badge badge-gate">Gatekeeper</span>
+                        <span style="font-size:0.65rem;color:var(--red);font-weight:700;">Gap</span>
+                      </div>
+                      <div class="role-card-num" style="color:var(--red);">0</div>
+                      <div class="role-card-sub">No leads delivered</div>
+                    </div>
+                  </div>
+
+                  <!-- Account intent score -->
+                  <div class="intent-panel">
+                    <div class="intent-score-num">74</div>
+                    <div class="intent-score-detail">
+                      <div class="intent-score-label">Account Intent Score</div>
+                      <div class="intent-bar-row">
+                        <span class="intent-bar-label">ML Intent Signal</span>
+                        <div class="intent-bar-track"><div class="intent-bar-fill" style="width:80%"></div></div>
+                        <span class="intent-bar-val">80</span>
+                      </div>
+                      <div class="intent-bar-row">
+                        <span class="intent-bar-label">Content Downloads</span>
+                        <div class="intent-bar-track"><div class="intent-bar-fill" style="width:65%"></div></div>
+                        <span class="intent-bar-val">65</span>
+                      </div>
+                      <div class="intent-bar-row">
+                        <span class="intent-bar-label">Site Visits</span>
+                        <div class="intent-bar-track"><div class="intent-bar-fill" style="width:58%"></div></div>
+                        <span class="intent-bar-val">58</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Empty state ──────────────────────────────────────── -->
+            <div id="coverage-empty" style="display:none;">
+              <div class="empty-state-card">
+                <div class="empty-icon">🎯</div>
+                <div class="empty-title">No buying committee configured</div>
+                <div class="empty-sub">Set up a buying committee for this campaign's product category to see role-level coverage, account intent scores, and committee gaps.</div>
+                <a href="#" class="empty-cta">Set up your buying committee — takes 5 minutes →</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 2: INSIGHTS ════════════════════════════════════════════ -->
+      <div id="tab-insights" class="tab-panel">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <div class="card-title">Persona Coverage</div>
+              <div class="card-subtitle">Section C — Insights tab · Job functions engaging with your content, including outside your targeting</div>
+            </div>
+            <span class="badge badge-warn">3 expansion opportunities</span>
+          </div>
+          <div class="card-body">
+
+            <!-- ── Configured state ─────────────────────────────────── -->
+            <div id="persona-configured">
+              <div class="persona-legend">
+                <div class="persona-legend-item"><div class="legend-swatch swatch-in"></div>Within buying group target</div>
+                <div class="persona-legend-item"><div class="legend-swatch swatch-out"></div>Outside targeting (expansion opportunity)</div>
+              </div>
+
+              <div class="persona-bars">
+                <!-- IT / Infrastructure -->
+                <div class="persona-bar-row">
+                  <span class="persona-bar-label">IT / Infrastructure</span>
+                  <div class="persona-bar-track">
+                    <div class="persona-bar-in"  style="width:52%"></div>
+                    <div class="persona-bar-out" style="width:8%"></div>
+                  </div>
+                  <span class="persona-bar-nums">26 + 4</span>
+                </div>
+                <!-- Operations -->
+                <div class="persona-bar-row">
+                  <span class="persona-bar-label">Operations</span>
+                  <div class="persona-bar-track">
+                    <div class="persona-bar-in"  style="width:28%"></div>
+                    <div class="persona-bar-out" style="width:12%"></div>
+                  </div>
+                  <span class="persona-bar-nums">14 + 6</span>
+                </div>
+                <!-- Finance -->
+                <div class="persona-bar-row">
+                  <span class="persona-bar-label">Finance</span>
+                  <div class="persona-bar-track">
+                    <div class="persona-bar-in"  style="width:16%"></div>
+                    <div class="persona-bar-out" style="width:24%"></div>
+                  </div>
+                  <span class="persona-bar-nums">8 + 12</span>
+                </div>
+                <!-- Marketing — outside group -->
+                <div class="persona-bar-row">
+                  <span class="persona-bar-label">Marketing</span>
+                  <div class="persona-bar-track">
+                    <div class="persona-bar-in"  style="width:0%"></div>
+                    <div class="persona-bar-out" style="width:18%"></div>
+                  </div>
+                  <span class="persona-bar-nums">0 + 9 &nbsp;<span style="font-size:0.65rem;color:var(--gold);">↑</span></span>
+                </div>
+                <!-- HR — outside group -->
+                <div class="persona-bar-row">
+                  <span class="persona-bar-label">HR</span>
+                  <div class="persona-bar-track">
+                    <div class="persona-bar-in"  style="width:0%"></div>
+                    <div class="persona-bar-out" style="width:8%"></div>
+                  </div>
+                  <span class="persona-bar-nums">0 + 4</span>
+                </div>
+              </div>
+
+              <div class="expansion-callout">
+                <span class="callout-icon">💡</span>
+                <div class="callout-body">
+                  <p class="callout-text"><strong>9 leads from Finance and Marketing functions</strong> are engaging with your content but are not in your current buying group targeting — these roles show multi-touch intent signals and could represent an adjacent buyer in cloud platform purchasing decisions.</p>
+                  <a href="#" class="callout-cta">Talk to your CSM about expanding targeting →</a>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Empty state ──────────────────────────────────────── -->
+            <div id="persona-empty" style="display:none;">
+              <div class="empty-state-card">
+                <div class="empty-icon">📊</div>
+                <div class="empty-title">Configure a buying committee to see persona coverage</div>
+                <div class="empty-sub">Once you've defined your buying committee roles, we'll show you which job functions are engaging — including leads outside your current targeting that could represent expansion opportunities.</div>
+                <a href="#" class="empty-cta">Set up your buying committee →</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TAB 3: LEADS ═══════════════════════════════════════════════ -->
+      <div id="tab-leads" class="tab-panel">
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <div class="card-title">Lead Table</div>
+              <div class="card-subtitle">Leads tab — new Buying Group Role column + committee completeness flag</div>
+            </div>
+            <button class="btn-export" style="font-size:0.75rem;padding:5px 12px;">↓ Export</button>
+          </div>
+          <div class="card-body" style="padding:12px 18px;">
+
+            <!-- Filter bar -->
+            <div class="table-filter-bar">
+              <span class="table-filter-label">Filter:</span>
+              <select class="filter-select">
+                <option>All Buying Group Roles</option>
+                <option>Decision Maker</option>
+                <option>Champion</option>
+                <option>Influencer</option>
+                <option>Gatekeeper</option>
+                <option>Outside Group</option>
+              </select>
+              <select class="filter-select">
+                <option>All Delivery Statuses</option>
+                <option>Delivered</option>
+                <option>Review</option>
+                <option>Hold</option>
+              </select>
+              <select class="filter-select">
+                <option>All Accounts</option>
+                <option>Incomplete Committee Only</option>
+              </select>
+            </div>
+
+            <!-- ── Configured state ─────────────────────────────────── -->
+            <div id="table-configured">
+              <table class="leads-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Job Title</th>
+                    <th>Score</th>
+                    <th>Delivery</th>
+                    <th>Buying Group Role</th>
+                    <th>Account Committee</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div class="lead-name">Priya Mehta</div>
+                      <div class="lead-email">p.mehta@apex.com</div>
+                    </td>
+                    <td>Apex Systems</td>
+                    <td>VP Infrastructure</td>
+                    <td><span class="score-pill score-deliver">84</span></td>
+                    <td><span class="delivery-chip dc-deliver">● Deliver</span></td>
+                    <td><span class="badge badge-dm">DM</span></td>
+                    <td><span class="badge badge-ok">3/4 roles ✓</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="lead-name">James O'Brien</div>
+                      <div class="lead-email">jobrien@apex.com</div>
+                    </td>
+                    <td>Apex Systems</td>
+                    <td>Director of Cloud Engineering</td>
+                    <td><span class="score-pill score-deliver">78</span></td>
+                    <td><span class="delivery-chip dc-deliver">● Deliver</span></td>
+                    <td><span class="badge badge-champ">Champion</span></td>
+                    <td><span class="badge badge-ok">3/4 roles ✓</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="lead-name">Sunita Rao</div>
+                      <div class="lead-email">s.rao@magna.com</div>
+                    </td>
+                    <td>Magna.com</td>
+                    <td>COO</td>
+                    <td><span class="score-pill score-deliver">81</span></td>
+                    <td><span class="delivery-chip dc-deliver">● Deliver</span></td>
+                    <td><span class="badge badge-dm">DM</span></td>
+                    <td><span class="incomplete-flag">⚠ 1/4 roles</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="lead-name">Lars Bergström</div>
+                      <div class="lead-email">l.berg@nova.io</div>
+                    </td>
+                    <td>Nova.io</td>
+                    <td>Marketing Manager</td>
+                    <td><span class="score-pill score-review">61</span></td>
+                    <td><span class="delivery-chip dc-review">◐ Review</span></td>
+                    <td><span class="badge badge-out">Outside</span></td>
+                    <td><span class="incomplete-flag">⚠ 1/4 roles</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="lead-name">Anya Kovacs</div>
+                      <div class="lead-email">a.kovacs@apex.com</div>
+                    </td>
+                    <td>Apex Systems</td>
+                    <td>IT Operations Specialist</td>
+                    <td><span class="score-pill score-review">58</span></td>
+                    <td><span class="delivery-chip dc-review">◐ Review</span></td>
+                    <td><span class="badge badge-infl">Influencer</span></td>
+                    <td><span class="badge badge-ok">3/4 roles ✓</span></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div class="lead-name">David Chen</div>
+                      <div class="lead-email">d.chen@quantum.co</div>
+                    </td>
+                    <td>Quantum Co</td>
+                    <td>Procurement Lead</td>
+                    <td><span class="score-pill score-hold">42</span></td>
+                    <td><span class="delivery-chip dc-hold">✕ Hold</span></td>
+                    <td><span class="badge badge-gate">Gatekeeper</span></td>
+                    <td><span class="incomplete-flag">⚠ 0/4 roles</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- ── Empty state ──────────────────────────────────────── -->
+            <div id="table-empty" style="display:none;">
+              <table class="leads-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Company</th>
+                    <th>Job Title</th>
+                    <th>Score</th>
+                    <th>Delivery</th>
+                    <th style="color:var(--border-strong);">Buying Group Role</th>
+                    <th style="color:var(--border-strong);">Account Committee</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><div class="lead-name">Priya Mehta</div><div class="lead-email">p.mehta@apex.com</div></td>
+                    <td>Apex Systems</td>
+                    <td>VP Infrastructure</td>
+                    <td><span class="score-pill score-deliver">84</span></td>
+                    <td><span class="delivery-chip dc-deliver">● Deliver</span></td>
+                    <td><span style="font-size:0.72rem;color:var(--muted);">— not configured</span></td>
+                    <td><span style="font-size:0.72rem;color:var(--muted);">—</span></td>
+                  </tr>
+                  <tr>
+                    <td><div class="lead-name">James O'Brien</div><div class="lead-email">jobrien@apex.com</div></td>
+                    <td>Apex Systems</td>
+                    <td>Director of Cloud Engineering</td>
+                    <td><span class="score-pill score-deliver">78</span></td>
+                    <td><span class="delivery-chip dc-deliver">● Deliver</span></td>
+                    <td><span style="font-size:0.72rem;color:var(--muted);">— not configured</span></td>
+                    <td><span style="font-size:0.72rem;color:var(--muted);">—</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="margin-top:14px;">
+                <div class="empty-state-card">
+                  <div class="empty-icon">🎯</div>
+                  <div class="empty-title">Buying Group Role column requires a configured committee</div>
+                  <div class="empty-sub">Once you set up a buying committee, each lead will be automatically categorized as Decision Maker, Champion, Influencer, or Gatekeeper based on their job title and function.</div>
+                  <a href="#" class="empty-cta">Set up your buying committee →</a>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page -->
+
+    <script>
+      function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+      }
+
+      function toggleEmptyState(isEmpty) {
+        // Coverage section
+        document.getElementById('coverage-configured').style.display = isEmpty ? 'none' : 'block';
+        document.getElementById('coverage-empty').style.display = isEmpty ? 'block' : 'none';
+        // Persona section
+        document.getElementById('persona-configured').style.display = isEmpty ? 'none' : 'block';
+        document.getElementById('persona-empty').style.display = isEmpty ? 'block' : 'none';
+        // Table section
+        document.getElementById('table-configured').style.display = isEmpty ? 'none' : 'block';
+        document.getElementById('table-empty').style.display = isEmpty ? 'block' : 'none';
+      }
+    </script>
+  </body>
+</html>

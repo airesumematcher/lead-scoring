@@ -3,222 +3,224 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ACE Lead Upload Portal</title>
+    <title>ACE Lead Scoring Portal</title>
     <style>
+      /* ── Design tokens ───────────────────────────────────────────────── */
       :root {
-        --ink: #17212d;
-        --muted: #5b6777;
-        --paper: #f3ede3;
-        --panel: rgba(255, 255, 255, 0.82);
-        --panel-strong: rgba(255, 255, 255, 0.94);
-        --line: rgba(23, 33, 45, 0.1);
-        --accent: #ba4b26;
-        --accent-dark: #8f3116;
-        --teal: #0f7a6b;
-        --gold: #c78a2c;
-        --danger: #b63a3a;
-        --shadow: 0 28px 80px rgba(23, 33, 45, 0.14);
+        --bg:      #f5f0e8;
+        --surface: #ffffff;
+        --surface-2: #f9f7f4;
+        --surface-3: #f2ede4;
+        --border:  rgba(23,33,45,0.09);
+        --border-strong: rgba(23,33,45,0.16);
+        --ink:     #17212d;
+        --ink-2:   #3d4d5c;
+        --muted:   #6b7a8d;
+        --accent:  #c04e28;
+        --accent-2:#9a3a1a;
+        --teal:    #0c7060;
+        --teal-bg: rgba(12,112,96,0.08);
+        --gold:    #b57a20;
+        --gold-bg: rgba(181,122,32,0.10);
+        --red:     #b03030;
+        --red-bg:  rgba(176,48,48,0.08);
+        --blue:    #2b5ca0;
+        --blue-bg: rgba(43,92,160,0.09);
+        --shadow-sm: 0 1px 3px rgba(23,33,45,0.08), 0 4px 16px rgba(23,33,45,0.06);
+        --shadow:    0 2px 8px rgba(23,33,45,0.08), 0 12px 32px rgba(23,33,45,0.08);
+        --r-sm: 6px;
+        --r:    10px;
+        --r-lg: 14px;
+        --r-xl: 18px;
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      *, *::before, *::after { box-sizing: border-box; }
 
-      html {
-        scroll-behavior: smooth;
-      }
+      html { scroll-behavior: smooth; font-size: 14px; }
 
       body {
         margin: 0;
         min-height: 100vh;
+        font-family: -apple-system, "Inter", "Segoe UI", sans-serif;
         color: var(--ink);
-        font-family: "Avenir Next", "Segoe UI", sans-serif;
-        background:
-          radial-gradient(circle at top left, rgba(186, 75, 38, 0.18), transparent 34%),
-          radial-gradient(circle at bottom right, rgba(15, 122, 107, 0.12), transparent 28%),
-          linear-gradient(135deg, #f8f2ea 0%, #efe1cc 48%, #f6f3ed 100%);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
       }
 
-      .shell {
-        max-width: 1380px;
-        margin: 0 auto;
-        padding: 32px 20px 56px;
-      }
-
-      .masthead {
+      /* ── Layout shell ────────────────────────────────────────────────── */
+      .app {
         display: grid;
-        grid-template-columns: 1.2fr 0.8fr;
-        gap: 22px;
-        margin-bottom: 22px;
+        grid-template-rows: 48px 1fr;
+        min-height: 100vh;
       }
 
-      .panel {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 28px;
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(18px);
-      }
-
-      .hero {
-        padding: 32px 34px;
-      }
-
-      .eyebrow {
-        margin: 0 0 14px;
-        color: var(--accent-dark);
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-      }
-
-      h1 {
-        margin: 0 0 14px;
-        font-size: clamp(2.7rem, 4vw, 5rem);
-        line-height: 0.95;
-      }
-
-      .lede {
-        max-width: 45rem;
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.7;
-        font-size: 1.04rem;
-      }
-
-      .meta-grid,
-      .stats-grid,
-      .report-grid {
-        display: grid;
-        gap: 14px;
-      }
-
-      .meta-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        margin-top: 24px;
-      }
-
-      .meta-card,
-      .stat-card,
-      .report-card {
-        background: rgba(255, 255, 255, 0.78);
-        border: 1px solid rgba(23, 33, 45, 0.07);
-        border-radius: 22px;
-        padding: 16px 18px;
-      }
-
-      .meta-card strong,
-      .stat-card strong,
-      .report-card strong {
-        display: block;
-        font-size: 0.93rem;
-        margin-bottom: 6px;
-      }
-
-      .meta-card span,
-      .stat-card span,
-      .report-card span {
-        color: var(--muted);
-        line-height: 1.55;
-        font-size: 0.95rem;
-      }
-
-      .system-panel {
-        padding: 28px;
-        display: grid;
-        gap: 16px;
-        align-content: start;
-      }
-
-      .system-list {
-        display: grid;
-        gap: 12px;
-      }
-
-      .system-item {
-        padding: 16px 18px;
-        border-radius: 22px;
-        background: rgba(23, 33, 45, 0.04);
-        border: 1px solid rgba(23, 33, 45, 0.08);
-      }
-
-      .system-item p,
-      .copy,
-      .helper,
-      .muted {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.65;
-      }
-
-      .workspace {
-        display: grid;
-        grid-template-columns: 1.08fr 0.92fr;
-        gap: 22px;
-        margin-bottom: 22px;
-      }
-
-      .uploader,
-      .configurator,
-      .results,
-      .reporting {
-        padding: 28px;
-      }
-
-      .section-head {
+      /* ── Top nav ─────────────────────────────────────────────────────── */
+      .topnav {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 18px;
+        padding: 0 20px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
       }
 
-      .section-head h2 {
-        margin: 0 0 4px;
-        font-size: 1.26rem;
+      .nav-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
 
-      .pill {
-        display: inline-flex;
+      .nav-logo {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        flex-shrink: 0;
+      }
+
+      .nav-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+      }
+
+      .nav-sep {
+        width: 1px;
+        height: 16px;
+        background: var(--border-strong);
+      }
+
+      .nav-sub {
+        font-size: 0.75rem;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .nav-right {
+        display: flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 12px;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--teal);
+        flex-shrink: 0;
+      }
+
+      .status-dot.warn  { background: var(--gold); }
+      .status-dot.error { background: var(--red); }
+
+      .runtime-tag {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.72rem;
+        color: var(--muted);
+        font-family: "SFMono-Regular", "Menlo", monospace;
+        padding: 3px 8px;
         border-radius: 999px;
-        font-size: 0.86rem;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+      }
+
+      .nav-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        font: inherit;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: var(--r-sm);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--ink-2);
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.12s, border-color 0.12s;
+        white-space: nowrap;
+      }
+
+      .nav-btn:hover { background: var(--surface-3); border-color: var(--border-strong); }
+
+      /* ── Main content area ───────────────────────────────────────────── */
+      .main {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 0;
+        align-items: start;
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+        padding: 20px;
+        gap: 16px;
+      }
+
+      /* ── Sidebar (upload + config) ───────────────────────────────────── */
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: sticky;
+        top: 68px;
+        max-height: calc(100vh - 88px);
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+      }
+
+      /* ── Cards / surfaces ────────────────────────────────────────────── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-xl);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        gap: 8px;
+      }
+
+      .card-title {
+        font-size: 0.8125rem;
         font-weight: 700;
-        background: rgba(15, 122, 107, 0.12);
-        color: var(--teal);
+        color: var(--ink);
+        letter-spacing: -0.01em;
       }
 
-      .pill.danger {
-        background: rgba(182, 58, 58, 0.12);
-        color: var(--danger);
-      }
+      .card-body { padding: 14px 16px; }
+      .card-body + .card-body { padding-top: 0; }
 
-      .pill.warn {
-        background: rgba(199, 138, 44, 0.14);
-        color: var(--gold);
-      }
-
+      /* ── Upload zone ─────────────────────────────────────────────────── */
       .dropzone {
         position: relative;
-        border: 1.5px dashed rgba(186, 75, 38, 0.34);
-        border-radius: 26px;
-        background:
-          linear-gradient(135deg, rgba(186, 75, 38, 0.07), rgba(255, 255, 255, 0.72)),
-          rgba(255, 255, 255, 0.88);
-        padding: 28px;
+        border: 1.5px dashed rgba(192,78,40,0.32);
+        border-radius: var(--r-lg);
+        background: linear-gradient(135deg, rgba(192,78,40,0.04) 0%, transparent 100%);
+        padding: 20px 16px;
         text-align: center;
-        transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-      }
-
-      .dropzone.dragging {
-        transform: translateY(-2px);
-        border-color: var(--accent);
-        background:
-          linear-gradient(135deg, rgba(186, 75, 38, 0.12), rgba(255, 255, 255, 0.9)),
-          rgba(255, 255, 255, 0.96);
+        cursor: pointer;
+        transition: border-color 0.15s, background 0.15s;
       }
 
       .dropzone input {
@@ -228,375 +230,398 @@
         cursor: pointer;
       }
 
-      .dropzone h3 {
-        margin: 0 0 8px;
-        font-size: 1.34rem;
+      .dropzone.dragging,
+      .dropzone:hover {
+        border-color: var(--accent);
+        background: linear-gradient(135deg, rgba(192,78,40,0.07) 0%, transparent 100%);
       }
 
-      .dropzone p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.6;
-      }
-
-      .button-row,
-      .inline-actions {
+      .dz-icon {
+        width: 32px;
+        height: 32px;
+        margin: 0 auto 8px;
+        border-radius: 8px;
+        background: rgba(192,78,40,0.10);
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-
-      .button-row {
-        margin-top: 18px;
-      }
-
-      button,
-      .ghost-link {
-        appearance: none;
-        border: 0;
-        border-radius: 999px;
-        padding: 12px 18px;
-        font: inherit;
-        cursor: pointer;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-      }
-
-      button:hover,
-      .ghost-link:hover {
-        transform: translateY(-1px);
-      }
-
-      .primary {
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-        color: #fff9f3;
-        box-shadow: 0 14px 26px rgba(186, 75, 38, 0.22);
-      }
-
-      .secondary {
-        background: rgba(23, 33, 45, 0.08);
-        color: var(--ink);
-      }
-
-      .ghost-link {
-        display: inline-flex;
         align-items: center;
         justify-content: center;
-        text-decoration: none;
-        background: rgba(255, 255, 255, 0.72);
-        color: var(--ink);
-        border: 1px solid rgba(23, 33, 45, 0.09);
+        font-size: 1rem;
       }
 
-      .toggle {
+      .dz-title {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: var(--ink);
+        margin-bottom: 3px;
+      }
+
+      .dz-sub {
+        font-size: 0.72rem;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      /* ── Status strip ────────────────────────────────────────────────── */
+      .status-strip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: var(--r);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+
+      .status-strip.ok    { background: var(--teal-bg); border-color: rgba(12,112,96,0.18); color: var(--teal); }
+      .status-strip.warn  { background: var(--gold-bg); border-color: rgba(181,122,32,0.2);  color: var(--gold); }
+      .status-strip.error { background: var(--red-bg);  border-color: rgba(176,48,48,0.18);  color: var(--red); }
+
+      /* ── Import preview chips ────────────────────────────────────────── */
+      .preview-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .preview-chip {
+        padding: 8px 10px;
+        border-radius: var(--r);
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+      }
+
+      .preview-chip .pc-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--muted);
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .preview-chip .pc-val {
+        font-size: 0.8125rem;
+        font-weight: 700;
+        color: var(--ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* ── Action buttons ──────────────────────────────────────────────── */
+      .btn-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .btn {
         display: inline-flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(23, 33, 45, 0.08);
+        gap: 6px;
+        padding: 7px 14px;
+        font: inherit;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        border-radius: var(--r);
+        border: 0;
+        cursor: pointer;
+        transition: opacity 0.12s, box-shadow 0.12s, background 0.12s;
+        white-space: nowrap;
+        text-decoration: none;
       }
 
-      .toggle input {
-        width: 18px;
-        height: 18px;
+      .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 1px 4px rgba(192,78,40,0.30);
       }
 
-      .upload-status,
-      .preview,
-      .results-table-wrap,
-      .report-table-wrap {
-        margin-top: 18px;
+      .btn-primary:hover { background: var(--accent-2); box-shadow: 0 2px 8px rgba(192,78,40,0.35); }
+
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--ink-2);
+        border: 1px solid var(--border);
+        box-shadow: 0 1px 2px rgba(23,33,45,0.05);
       }
 
-      .preview-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
+      .btn-secondary:hover { background: var(--surface-3); }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--muted);
+        padding: 5px 8px;
       }
 
-      .preview-box {
-        padding: 14px 16px;
-        border-radius: 18px;
-        background: rgba(23, 33, 45, 0.04);
-        border: 1px solid rgba(23, 33, 45, 0.08);
+      .btn-ghost:hover { background: var(--surface-3); color: var(--ink); }
+
+      .toggle-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        user-select: none;
       }
 
-      .preview-box strong {
-        display: block;
-        margin-bottom: 6px;
+      .toggle-label input { accent-color: var(--accent); }
+
+      /* ── Config accordions ───────────────────────────────────────────── */
+      .cfg-group {
+        border-bottom: 1px solid var(--border);
+      }
+
+      .cfg-group:last-of-type { border-bottom: 0; }
+
+      .cfg-group summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 9px 16px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--ink-2);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        user-select: none;
+        transition: background 0.1s;
+      }
+
+      .cfg-group summary:hover { background: var(--surface-2); }
+
+      .cfg-group summary::before {
+        content: "›";
+        font-size: 0.9rem;
+        color: var(--muted);
+        transition: transform 0.15s;
+        line-height: 1;
+        display: inline-block;
+        width: 10px;
+        text-align: center;
+      }
+
+      .cfg-group[open] > summary::before { transform: rotate(90deg); }
+
+      .cfg-body {
+        padding: 4px 16px 12px;
       }
 
       .field-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
-      }
-
-      label {
-        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 8px;
-        font-size: 0.93rem;
-        font-weight: 700;
       }
 
-      input,
-      textarea,
-      select {
+      label.field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      input, textarea, select {
         width: 100%;
-        border: 1px solid rgba(23, 33, 45, 0.1);
-        border-radius: 16px;
-        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--r-sm);
+        padding: 7px 9px;
         font: inherit;
+        font-size: 0.8125rem;
         color: var(--ink);
-        background: var(--panel-strong);
+        background: var(--surface);
+        transition: border-color 0.12s, box-shadow 0.12s;
+        text-transform: none;
+        font-weight: 400;
+        letter-spacing: 0;
       }
 
-      textarea {
-        min-height: 124px;
-        resize: vertical;
+      input:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(192,78,40,0.12);
       }
 
-      details {
-        margin-top: 18px;
-        border-radius: 18px;
-        border: 1px solid rgba(23, 33, 45, 0.08);
-        background: rgba(255, 255, 255, 0.58);
-        overflow: hidden;
-      }
+      textarea { min-height: 80px; resize: vertical; }
 
-      summary {
-        cursor: pointer;
-        padding: 14px 16px;
-        font-weight: 700;
-      }
-
-      details .details-body {
-        padding: 0 16px 16px;
-      }
-
-      code,
-      .mono {
-        font-family: "SFMono-Regular", "Menlo", monospace;
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-
-      .report-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      table {
+      /* ── Buying group mini table ─────────────────────────────────────── */
+      .bg-table {
         width: 100%;
         border-collapse: collapse;
+        font-size: 0.75rem;
       }
 
-      th,
-      td {
-        padding: 12px 14px;
-        border-bottom: 1px solid rgba(23, 33, 45, 0.08);
-        text-align: left;
-        vertical-align: top;
-      }
-
-      th {
-        font-size: 0.82rem;
+      .bg-table th {
+        padding: 5px 6px;
+        font-size: 0.68rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.07em;
         color: var(--muted);
-      }
-
-      tbody tr:hover {
-        background: rgba(23, 33, 45, 0.03);
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 0.82rem;
-        font-weight: 700;
-      }
-
-      .badge.deliver,
-      .badge.priority {
-        background: rgba(15, 122, 107, 0.12);
-        color: var(--teal);
-      }
-
-      .badge.review,
-      .badge.nurture {
-        background: rgba(199, 138, 44, 0.14);
-        color: var(--gold);
-      }
-
-      .badge.hold,
-      .badge.monitor {
-        background: rgba(182, 58, 58, 0.12);
-        color: var(--danger);
-      }
-
-      .badge.champion {
-        background: rgba(43, 92, 160, 0.12);
-        color: #2b5ca0;
-      }
-
-      /* Score gauge */
-      .score-gauge {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        min-width: 110px;
-      }
-
-      .score-top {
-        display: flex;
-        align-items: baseline;
-        gap: 5px;
-      }
-
-      .score-number {
-        font-size: 1.45rem;
-        font-weight: 800;
-        line-height: 1;
-      }
-
-      .score-number.score-deliver { color: var(--teal); }
-      .score-number.score-review  { color: var(--gold); }
-      .score-number.score-hold    { color: var(--danger); }
-
-      .score-max {
-        font-size: 0.78rem;
-        color: var(--muted);
-      }
-
-      .score-bar-track {
-        height: 6px;
-        border-radius: 999px;
-        background: rgba(23, 33, 45, 0.09);
-        overflow: hidden;
-      }
-
-      .score-bar-fill {
-        height: 100%;
-        border-radius: 999px;
-        transition: width 0.5s ease;
-      }
-
-      .score-bar-fill.score-deliver { background: var(--teal); }
-      .score-bar-fill.score-review  { background: var(--gold); }
-      .score-bar-fill.score-hold    { background: var(--danger); }
-
-      /* Score breakdown tooltip row */
-      .breakdown-row td {
-        padding: 0 14px 12px;
-        border-bottom: 1px solid rgba(23, 33, 45, 0.06);
-        background: rgba(255,255,255,0.6);
-      }
-
-      .breakdown-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-        gap: 10px;
-        padding-top: 10px;
-      }
-
-      .breakdown-item {
-        background: rgba(23, 33, 45, 0.04);
-        border: 1px solid rgba(23, 33, 45, 0.07);
-        border-radius: 12px;
-        padding: 10px 12px;
-      }
-
-      .breakdown-item .b-label {
-        font-size: 0.74rem;
-        color: var(--muted);
-        margin-bottom: 4px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
         font-weight: 600;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
       }
 
-      .breakdown-item .b-val {
-        font-size: 1.1rem;
-        font-weight: 800;
+      .bg-table td {
+        padding: 4px 6px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
       }
 
-      .breakdown-mini-bar {
-        height: 3px;
-        border-radius: 999px;
-        background: rgba(23,33,45,0.09);
-        margin-top: 5px;
-        margin-bottom: 8px;
-        overflow: hidden;
-      }
+      .bg-table td:last-child { width: 28px; }
 
-      .breakdown-mini-fill {
-        height: 100%;
-        border-radius: 999px;
-        background: var(--accent);
-      }
-
-      .signal-detail {
-        margin-top: 6px;
+      .bg-table select, .bg-table input {
+        border-radius: 4px;
+        padding: 3px 5px;
         font-size: 0.72rem;
-        line-height: 1.45;
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
       }
 
-      .signal-driver {
-        color: var(--teal);
-        display: flex;
-        gap: 4px;
-      }
-
-      .signal-driver::before {
-        content: "✓";
-        flex-shrink: 0;
-        font-weight: 700;
-      }
-
-      .signal-flag {
-        color: #a06010;
-        display: flex;
-        gap: 4px;
-      }
-
-      .signal-flag::before {
-        content: "⚠";
-        flex-shrink: 0;
-      }
-
-      .expand-btn {
+      .rm-btn {
         appearance: none;
         border: 0;
-        background: none;
-        cursor: pointer;
+        background: transparent;
         color: var(--muted);
-        font-size: 0.8rem;
-        padding: 2px 6px;
-        border-radius: 6px;
-        transition: background 0.15s;
+        cursor: pointer;
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        line-height: 1;
+        transition: background 0.1s, color 0.1s;
       }
 
-      .expand-btn:hover {
-        background: rgba(23,33,45,0.08);
-        transform: none;
-        box-shadow: none;
+      .rm-btn:hover { background: var(--red-bg); color: var(--red); }
+
+      .bg-controls {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 8px 0 6px;
       }
 
-      /* Score distribution chart */
+      .bg-controls input { flex: 1; min-width: 120px; }
+      .bg-controls select { width: auto; }
+
+      /* ── Supported columns detail ────────────────────────────────────── */
+      .cols-detail summary {
+        list-style: none;
+        cursor: pointer;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--muted);
+        padding: 6px 0;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .cols-detail summary::before {
+        content: "›";
+        transition: transform 0.15s;
+        display: inline-block;
+      }
+
+      .cols-detail[open] summary::before { transform: rotate(90deg); }
+
+      .cols-detail .detail-body {
+        font-size: 0.72rem;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      code {
+        font-family: "SFMono-Regular", "Menlo", monospace;
+        background: var(--surface-3);
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 0.68rem;
+        color: var(--ink-2);
+      }
+
+      /* ── Main content panel ──────────────────────────────────────────── */
+      .content { display: flex; flex-direction: column; gap: 0; }
+
+      /* ── Results header bar ──────────────────────────────────────────── */
+      .results-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        gap: 12px;
+        background: var(--surface);
+        border-radius: var(--r-xl) var(--r-xl) 0 0;
+        border: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .results-title-group { display: flex; flex-direction: column; gap: 1px; }
+      .results-title { font-size: 0.8125rem; font-weight: 700; color: var(--ink); }
+      .results-sub   { font-size: 0.72rem; color: var(--muted); }
+
+      .kpi-row {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        overflow: hidden;
+        background: var(--surface);
+      }
+
+      .kpi-cell {
+        padding: 5px 14px;
+        text-align: center;
+        border-right: 1px solid var(--border);
+        min-width: 60px;
+      }
+
+      .kpi-cell:last-child { border-right: 0; }
+
+      .kpi-num {
+        font-size: 1.05rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--ink);
+        display: block;
+      }
+
+      .kpi-label {
+        font-size: 0.62rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--muted);
+        font-weight: 600;
+        display: block;
+        margin-top: 1px;
+      }
+
+      /* ── Distribution bar ────────────────────────────────────────────── */
+      .dist-wrap {
+        padding: 10px 16px 0;
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+      }
+
       .dist-chart {
         display: flex;
         align-items: flex-end;
-        gap: 4px;
-        height: 48px;
-        margin-top: 10px;
+        gap: 3px;
+        height: 36px;
       }
 
       .dist-bar-wrap {
@@ -604,592 +629,828 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 3px;
+        gap: 2px;
       }
 
       .dist-bar {
         width: 100%;
-        border-radius: 4px 4px 0 0;
+        border-radius: 3px 3px 0 0;
         min-height: 2px;
-        transition: height 0.4s ease;
+        transition: height 0.35s ease;
       }
 
-      .dist-label {
-        font-size: 0.64rem;
-        color: var(--muted);
-      }
-
-      .empty-state {
-        padding: 28px;
-        border-radius: 24px;
-        border: 1px dashed rgba(23, 33, 45, 0.16);
-        color: var(--muted);
-        text-align: center;
-        background: rgba(255, 255, 255, 0.54);
-      }
-
-      .footnote {
-        margin-top: 16px;
-        font-size: 0.9rem;
-        color: var(--muted);
-      }
-
-      /* Buying group builder */
-      .bg-builder {
-        margin-top: 18px;
-        border: 1px solid rgba(23,33,45,0.09);
-        border-radius: 18px;
-        overflow: hidden;
-        background: rgba(255,255,255,0.55);
-      }
-
-      .bg-builder-head {
+      .dist-label-row {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        background: rgba(23,33,45,0.04);
-        border-bottom: 1px solid rgba(23,33,45,0.08);
-        gap: 10px;
+        gap: 14px;
+        padding: 5px 0 8px;
+        font-size: 0.68rem;
+        color: var(--muted);
+        border-bottom: 1px solid var(--border);
       }
 
-      .bg-builder-head strong { font-size: 0.88rem; }
+      .dist-legend-item { display: flex; align-items: center; gap: 4px; }
+      .dist-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-      .bg-persona-table {
+      /* ── Results table ───────────────────────────────────────────────── */
+      .table-wrap {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-top: 0;
+        border-radius: 0 0 var(--r-xl) var(--r-xl);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+      }
+
+      table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.83rem;
       }
 
-      .bg-persona-table th {
-        font-size: 0.72rem;
-        padding: 8px 10px;
-        background: rgba(23,33,45,0.03);
+      thead tr {
+        background: var(--surface-2);
+        border-bottom: 1px solid var(--border);
       }
 
-      .bg-persona-table td {
-        padding: 6px 8px;
-        border-bottom: 1px solid rgba(23,33,45,0.06);
-      }
-
-      .bg-persona-table select,
-      .bg-persona-table input {
-        border-radius: 8px;
-        padding: 5px 8px;
-        font-size: 0.82rem;
-        width: 100%;
-      }
-
-      .remove-persona-btn {
-        appearance: none;
-        border: 0;
-        background: rgba(182,58,58,0.10);
-        color: var(--danger);
-        border-radius: 6px;
-        padding: 4px 8px;
-        cursor: pointer;
-        font-size: 0.78rem;
+      th {
+        padding: 8px 12px;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
         font-weight: 700;
+        text-align: left;
+        white-space: nowrap;
       }
 
-      .remove-persona-btn:hover { background: rgba(182,58,58,0.20); transform: none; box-shadow: none; }
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.8125rem;
+        vertical-align: middle;
+        color: var(--ink);
+      }
 
-      /* Role coverage pills */
-      .role-pill {
+      tbody tr:last-child td { border-bottom: 0; }
+
+      tbody tr:hover td { background: var(--surface-2); }
+
+      tbody tr.expanded td { background: var(--surface-2); }
+
+      /* ── Badges & pills ──────────────────────────────────────────────── */
+      .badge {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
         padding: 3px 8px;
         border-radius: 999px;
         font-size: 0.72rem;
         font-weight: 700;
-        margin: 2px 2px 0 0;
+        white-space: nowrap;
       }
 
-      .role-dm   { background: rgba(15,122,107,0.14);  color: var(--teal); }
-      .role-inf  { background: rgba(43,92,160,0.12);   color: #2b5ca0; }
-      .role-champ{ background: rgba(199,138,44,0.14);  color: var(--gold); }
-      .role-user { background: rgba(23,33,45,0.08);    color: var(--muted); }
-      .role-gate { background: rgba(182,58,58,0.10);   color: var(--danger); }
+      .badge-deliver, .badge-priority { background: var(--teal-bg); color: var(--teal); }
+      .badge-review,  .badge-nurture  { background: var(--gold-bg); color: var(--gold); }
+      .badge-hold,    .badge-monitor  { background: var(--red-bg);  color: var(--red);  }
+      .badge-champion                 { background: var(--blue-bg); color: var(--blue); }
 
-      /* Selling story */
-      .story-panel {
-        margin-top: 14px;
-        border: 1px solid rgba(23,33,45,0.09);
-        border-radius: 16px;
+      .role-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        margin: 1px 2px 1px 0;
+      }
+
+      .role-dm    { background: var(--teal-bg); color: var(--teal); }
+      .role-inf   { background: var(--blue-bg); color: var(--blue); }
+      .role-champ { background: var(--gold-bg); color: var(--gold); }
+      .role-user  { background: rgba(23,33,45,0.07); color: var(--muted); }
+      .role-gate  { background: var(--red-bg);  color: var(--red); }
+
+      /* ── Score gauge ─────────────────────────────────────────────────── */
+      .score-gauge { display: flex; flex-direction: column; gap: 4px; min-width: 88px; }
+
+      .score-top { display: flex; align-items: baseline; gap: 3px; }
+
+      .score-num {
+        font-size: 1.25rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      .score-num.s-deliver { color: var(--teal); }
+      .score-num.s-review  { color: var(--gold); }
+      .score-num.s-hold    { color: var(--red);  }
+
+      .score-denom { font-size: 0.72rem; color: var(--muted); }
+
+      .score-track {
+        height: 4px;
+        border-radius: 999px;
+        background: var(--surface-3);
         overflow: hidden;
       }
 
-      .story-header {
+      .score-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.45s ease;
+      }
+
+      .score-fill.s-deliver { background: var(--teal); }
+      .score-fill.s-review  { background: var(--gold); }
+      .score-fill.s-hold    { background: var(--red);  }
+
+      .score-mode { font-size: 0.68rem; color: var(--muted); }
+
+      /* ── Expand toggle ───────────────────────────────────────────────── */
+      .expand-btn {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 0.72rem;
+        padding: 4px 8px;
+        border-radius: var(--r-sm);
+        transition: background 0.12s, color 0.12s;
+        line-height: 1;
+      }
+
+      .expand-btn:hover { background: var(--surface-3); color: var(--ink); box-shadow: none; transform: none; }
+
+      /* ── Breakdown panel ─────────────────────────────────────────────── */
+      .breakdown-row > td {
+        padding: 0 12px 14px;
+        background: var(--surface-2) !important;
+        border-bottom: 1px solid var(--border) !important;
+      }
+
+      .breakdown-inner { padding-top: 12px; }
+
+      .breakdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 8px;
+      }
+
+      .bd-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 9px 11px;
+      }
+
+      .bd-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        font-weight: 600;
+        margin-bottom: 2px;
+      }
+
+      .bd-val {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+      }
+
+      .bd-mini-track {
+        height: 2px;
+        background: var(--surface-3);
+        border-radius: 999px;
+        margin: 4px 0 6px;
+        overflow: hidden;
+      }
+
+      .bd-mini-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+
+      .signal-detail { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+
+      .signal-driver {
+        display: flex;
+        gap: 4px;
+        align-items: flex-start;
+        font-size: 0.68rem;
+        color: var(--teal);
+        line-height: 1.4;
+      }
+
+      .signal-driver::before { content: "✓"; font-weight: 700; flex-shrink: 0; }
+
+      .signal-flag {
+        display: flex;
+        gap: 4px;
+        align-items: flex-start;
+        font-size: 0.68rem;
+        color: #97710e;
+        line-height: 1.4;
+      }
+
+      .signal-flag::before { content: "⚠"; flex-shrink: 0; }
+
+      /* ── Buying group prominent card ────────────────────────────────── */
+      .bg-card, .acct-score-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+      }
+
+      .bg-card-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 10px 14px;
-        background: rgba(23,33,45,0.04);
-        border-bottom: 1px solid rgba(23,33,45,0.08);
+        padding: 8px 12px;
+        background: var(--surface-2);
+        border-bottom: 1px solid var(--border);
       }
 
-      .story-header strong { font-size: 0.88rem; }
+      .bg-card-title {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--ink-2);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .bg-card-body { padding: 10px 12px; }
+
+      .bgs-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+
+      .bgs-green { background: var(--teal-bg); color: var(--teal); }
+      .bgs-amber { background: var(--gold-bg); color: var(--gold); }
+      .bgs-red   { background: var(--red-bg);  color: var(--red);  }
+
+      .bdr-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        background: var(--teal-bg);
+        color: var(--teal);
+        border: 1px solid rgba(12,112,96,0.18);
+      }
+      .bdr-badge::before { content: "⚡"; }
+
+      .bg-coverage-bars { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+
+      .cov-bar-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .cov-bar-label {
+        font-size: 0.68rem;
+        color: var(--muted);
+        font-weight: 600;
+        min-width: 110px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .cov-bar-track {
+        flex: 1;
+        height: 5px;
+        background: var(--border);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .cov-bar-fill {
+        height: 100%;
+        background: var(--teal);
+        border-radius: 999px;
+        transition: width 0.4s ease;
+      }
+
+      .cov-bar-dm { background: var(--accent); }
+
+      .cov-bar-pct {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--ink-2);
+        min-width: 28px;
+        text-align: right;
+      }
+
+      .bg-persona-section { margin-top: 8px; }
+
+      .bg-section-sublabel {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        font-weight: 700;
+        color: var(--muted);
+        margin-bottom: 5px;
+      }
+
+      .role-cov-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 4px;
+      }
+
+      .role-cov-label {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--ink-2);
+        min-width: 110px;
+      }
+
+      .role-cov-track {
+        flex: 1;
+        height: 4px;
+        background: var(--border);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .role-cov-fill {
+        height: 100%;
+        background: var(--blue);
+        border-radius: 999px;
+      }
+
+      .role-cov-pct {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--muted);
+        min-width: 28px;
+        text-align: right;
+      }
+
+      /* ── Buying group coverage section ───────────────────────────────── */
+      .bg-section {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+      }
+
+      .bg-section-label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        font-weight: 700;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 7px;
+      }
+
+      .coverage-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+
+      .cov-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 9px;
+        border-radius: 7px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border: 1px solid var(--border);
+      }
+
+      .cov-covered   { background: var(--teal-bg); color: var(--teal); border-color: rgba(12,112,96,0.18); }
+      .cov-uncovered { background: var(--red-bg);  color: var(--red);  border-color: rgba(176,48,48,0.16); }
+
+      /* ── Selling story panel ─────────────────────────────────────────── */
+      .story-panel {
+        margin-top: 10px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r-lg);
+        overflow: hidden;
+      }
+
+      .story-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface-2);
+      }
+
+      .story-head-label { font-size: 0.72rem; font-weight: 700; color: var(--ink-2); }
 
       .story-motion {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        padding: 4px 10px;
+        gap: 5px;
+        padding: 2px 8px;
         border-radius: 999px;
-        font-size: 0.76rem;
+        font-size: 0.68rem;
         font-weight: 700;
       }
 
-      .motion-accelerate { background: rgba(15,122,107,0.14);  color: var(--teal); }
-      .motion-nurture    { background: rgba(199,138,44,0.14);  color: var(--gold); }
-      .motion-hold       { background: rgba(182,58,58,0.12);   color: var(--danger); }
+      .motion-accelerate { background: var(--teal-bg); color: var(--teal); }
+      .motion-nurture    { background: var(--gold-bg); color: var(--gold); }
+      .motion-hold       { background: var(--red-bg);  color: var(--red);  }
 
       .story-body {
-        padding: 14px 16px;
         display: grid;
-        gap: 12px;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0;
       }
 
-      .story-section { display: grid; gap: 4px; }
+      .story-section {
+        padding: 10px 12px;
+        border-right: 1px solid var(--border);
+      }
 
-      .story-label {
-        font-size: 0.72rem;
-        font-weight: 700;
+      .story-section:last-of-type { border-right: 0; }
+
+      .story-slabel {
+        font-size: 0.62rem;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.09em;
+        font-weight: 700;
         color: var(--muted);
+        margin-bottom: 4px;
       }
 
       .story-text {
-        font-size: 0.86rem;
-        line-height: 1.6;
-        color: var(--ink);
+        font-size: 0.775rem;
+        color: var(--ink-2);
+        line-height: 1.55;
       }
 
       .story-action {
-        margin-top: 4px;
-        padding: 10px 14px;
-        border-radius: 12px;
-        background: rgba(186,75,38,0.07);
-        border-left: 3px solid var(--accent);
-        font-size: 0.86rem;
+        margin: 10px 12px 10px;
+        padding: 8px 12px;
+        border-radius: var(--r);
+        background: rgba(192,78,40,0.05);
+        border-left: 2px solid var(--accent);
+        font-size: 0.775rem;
         font-weight: 600;
+        color: var(--ink);
         line-height: 1.5;
       }
 
-      /* Persona coverage table in expanded row */
-      .coverage-grid {
+      /* ── Empty state ─────────────────────────────────────────────────── */
+      .empty-state {
         display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        padding-top: 6px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        text-align: center;
+        color: var(--muted);
+        gap: 8px;
       }
 
-      .coverage-chip {
+      .empty-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--surface-3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        margin-bottom: 4px;
+      }
+
+      .empty-title { font-size: 0.875rem; font-weight: 700; color: var(--ink-2); }
+      .empty-sub   { font-size: 0.775rem; max-width: 280px; line-height: 1.5; }
+
+      /* ── Lead name / company cell ────────────────────────────────────── */
+      .cell-primary   { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+      .cell-secondary { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+
+      /* ── Import status pill ──────────────────────────────────────────── */
+      .import-pill {
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 5px 10px;
-        border-radius: 10px;
-        font-size: 0.76rem;
-        font-weight: 600;
-        border: 1px solid rgba(23,33,45,0.08);
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
       }
 
-      .chip-covered   { background: rgba(15,122,107,0.10); color: var(--teal); }
-      .chip-uncovered { background: rgba(182,58,58,0.08);  color: var(--danger); }
+      .import-pill.idle  { background: var(--gold-bg); color: var(--gold); }
+      .import-pill.ready { background: var(--teal-bg); color: var(--teal); }
+      .import-pill.error { background: var(--red-bg);  color: var(--red);  }
 
-      @media (max-width: 1180px) {
-        .masthead,
-        .workspace,
-        .stats-grid,
-        .report-grid,
-        .meta-grid {
-          grid-template-columns: 1fr;
-        }
+      /* ── Responsive ──────────────────────────────────────────────────── */
+      @media (max-width: 1100px) {
+        .main { grid-template-columns: 300px 1fr; }
       }
 
-      @media (max-width: 760px) {
-        .field-grid,
-        .preview-grid {
-          grid-template-columns: 1fr;
-        }
+      @media (max-width: 900px) {
+        .main { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+        .sidebar { position: static; max-height: none; overflow-y: visible; }
+        .story-body { grid-template-columns: 1fr; }
+        .story-section { border-right: 0; border-bottom: 1px solid var(--border); }
+        .story-section:last-of-type { border-bottom: 0; }
+      }
 
-        .shell {
-          padding: 18px 14px 36px;
-        }
-
-        .hero,
-        .system-panel,
-        .uploader,
-        .configurator,
-        .results,
-        .reporting {
-          padding: 22px;
-        }
+      @media (max-width: 640px) {
+        .field-grid { grid-template-columns: 1fr; }
+        .kpi-row { flex-wrap: wrap; }
+        .kpi-cell { flex: 1 1 50%; border-bottom: 1px solid var(--border); }
+        .nav-right .nav-btn:not(:last-child) { display: none; }
       }
     </style>
   </head>
   <body>
-    <main class="shell">
-      <section class="masthead">
-        <article class="panel hero">
-          <p class="eyebrow">Lead Intake Portal</p>
-          <h1>Upload Leads. Trigger Scoring. Send Action Back.</h1>
-          <p class="lede">
-            This lightweight portal sits on top of the ACE APIs. Import a CSV,
-            apply shared campaign metadata, trigger scoring automatically, and
-            return a scored lead file with delivery actions, quadrants, reasons,
-            and buying-group visibility.
-          </p>
-          <div class="meta-grid">
-            <div class="meta-card">
-              <strong>Upload Trigger</strong>
-              <span>CSV or Excel import can auto-start batch scoring as soon as the file reaches the portal API.</span>
-            </div>
-            <div class="meta-card">
-              <strong>Output Ready</strong>
-              <span>Download a scored export with delivery decisions, quadrants, and top reasons.</span>
-            </div>
-            <div class="meta-card">
-              <strong>Buying Group</strong>
-              <span>After scoring, the portal pulls the persisted campaign report automatically.</span>
-            </div>
-          </div>
-        </article>
+    <div class="app">
 
-        <aside class="panel system-panel">
-          <div class="section-head">
-            <div>
-              <h2>System Status</h2>
-              <p class="helper">Live health and runtime mode from the API.</p>
-            </div>
-            <span id="healthPill" class="pill warn">Checking</span>
+      <!-- ── Top nav ──────────────────────────────────────────────────── -->
+      <nav class="topnav">
+        <div class="nav-brand">
+          <div class="nav-logo">ACE</div>
+          <span class="nav-title">Buying Intelligence</span>
+          <div class="nav-sep"></div>
+          <span class="nav-sub">Lead Scoring Portal</span>
+        </div>
+        <div class="nav-right">
+          <div id="runtimeTag" class="runtime-tag">
+            <span class="status-dot warn" id="statusDot"></span>
+            <span id="runtimeValue">Connecting…</span>
           </div>
-          <div class="system-list">
-            <div class="system-item">
-              <strong>API Base</strong>
-              <p class="copy mono" id="apiBaseValue">/</p>
+          <span id="apiBaseValue" style="display:none;"></span>
+          <a class="nav-btn" href="/docs" target="_blank" rel="noreferrer">API Docs ↗</a>
+          <button class="nav-btn" id="downloadLeadTemplateButton" type="button">Lead Template</button>
+          <button class="nav-btn" id="downloadCampaignTemplateButton" type="button">Campaign Template</button>
+        </div>
+      </nav>
+
+      <!-- ── Main ─────────────────────────────────────────────────────── -->
+      <div class="main">
+
+        <!-- ── Sidebar ──────────────────────────────────────────────────  -->
+        <aside class="sidebar">
+
+          <!-- Upload card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Import Leads</span>
+              <span class="import-pill idle" id="importPill">Waiting</span>
             </div>
-            <div class="system-item">
-              <strong>Runtime</strong>
-              <p class="copy" id="runtimeValue">Loading...</p>
-            </div>
-            <div class="system-item">
-              <strong>Recommended Portal Flow</strong>
-              <p class="copy">Set campaign context once, upload a lead CSV, auto-score, review the batch, then export the result file.</p>
+            <div class="card-body">
+              <div class="dropzone" id="dropzone">
+                <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.xlsm,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                <div class="dz-icon">📁</div>
+                <div class="dz-title">Drop a file here</div>
+                <div class="dz-sub">CSV or Excel · headers auto-interpreted</div>
+              </div>
+
+              <div class="status-strip" id="statusStrip">
+                <span id="statusMessage">No file loaded.</span>
+              </div>
+
+              <div class="preview-row">
+                <div class="preview-chip">
+                  <div class="pc-label">Rows</div>
+                  <div class="pc-val" id="previewRows">—</div>
+                </div>
+                <div class="preview-chip">
+                  <div class="pc-label">Status</div>
+                  <div class="pc-val" id="previewAction">Awaiting file</div>
+                </div>
+              </div>
+
+              <div class="preview-chip" style="margin-top:8px;">
+                <div class="pc-label">Header mapping</div>
+                <div class="pc-val" style="white-space:normal; font-size:0.72rem; font-weight:500;" id="previewColumns">—</div>
+              </div>
+
+              <div class="btn-row">
+                <label class="toggle-label">
+                  <input id="autoScoreToggle" type="checkbox" checked />
+                  Auto-score on upload
+                </label>
+              </div>
+
+              <div class="btn-row">
+                <button id="scoreButton" class="btn btn-primary" type="button" disabled>Score Leads</button>
+                <button id="exportButton" class="btn btn-secondary" type="button" disabled>Export CSV</button>
+              </div>
+
+              <details class="cols-detail" style="margin-top:10px;">
+                <summary>Supported columns</summary>
+                <div class="detail-body" style="margin-top:4px;">
+                  <strong style="font-size:0.7rem; color:var(--ink-2);">Required:</strong>
+                  <code>email</code> <code>first_name</code> <code>last_name</code>
+                  <code>job_title</code> <code>company_name</code> <code>domain</code>
+                  <code>industry</code> <code>geography</code><br/>
+                  <strong style="font-size:0.7rem; color:var(--ink-2);">Optional:</strong>
+                  <code>company_size</code> <code>email1_opened</code> <code>email1_clicked</code>
+                  <code>email2_opened</code> <code>approval_rate_6m</code>
+                  <code>client_acceptance_rate_6m</code> and more.
+                  Header variants like <code>Email Address</code>, <code>Company</code>, <code>Website</code> auto-mapped.
+                </div>
+              </details>
             </div>
           </div>
-          <div class="inline-actions">
-            <a class="ghost-link" href="/docs" target="_blank" rel="noreferrer">Open API Docs</a>
-            <button id="downloadLeadTemplateButton" class="secondary" type="button">Lead CSV Template</button>
-            <button id="downloadCampaignTemplateButton" class="secondary" type="button">Campaign CSV Template</button>
+
+          <!-- Campaign config card -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Campaign Context</span>
+              <div style="display:flex; gap:6px;">
+                <input id="campaignSpecFileInput" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden />
+                <input id="campaignFileInput" type="file" accept=".csv,text/csv" hidden />
+                <button class="btn btn-primary" id="loadCampaignXlsxButton" type="button" style="padding:4px 9px; font-size:0.72rem;">Upload Campaign Spec</button>
+                <button class="btn btn-ghost" id="clearCampaignSpecButton" type="button" style="padding:4px 9px; font-size:0.72rem; display:none; color:var(--red);">✕ Clear Spec</button>
+                <button class="btn btn-secondary" id="loadCampaignCsvButton" type="button" style="padding:4px 9px; font-size:0.72rem;">Upload CSV</button>
+                <button class="btn btn-ghost" id="resetCampaignButton" type="button" style="padding:4px 9px; font-size:0.72rem;">Reset</button>
+              </div>
+            </div>
+            <p id="campaignStatusMessage" style="font-size:0.72rem; color:var(--muted); padding:6px 16px 0; margin:0;">Using values shown in form. Upload a campaign spec XLSX to auto-populate.</p>
+
+            <form id="campaignForm">
+
+              <details class="cfg-group" open>
+                <summary>Campaign Identity</summary>
+                <div class="cfg-body field-grid">
+                  <label class="field">Client ID <input name="client_id" value="client-health-01" required /></label>
+                  <label class="field">Campaign ID <input name="campaign_id" value="HC-BOFU-2026-01" required /></label>
+                  <label class="field" style="grid-column:1/-1;">Campaign Name <input name="campaign_name" value="Clinical ROI Acceleration" required /></label>
+                  <label class="field" style="grid-column:1/-1;">Asset Name <input name="asset_name" value="Clinical ROI Case Study" required /></label>
+                </div>
+              </details>
+
+              <details class="cfg-group">
+                <summary>Taxonomy &amp; Stage</summary>
+                <div class="cfg-body field-grid">
+                  <label class="field">Asset Type <input name="asset_type" value="case study" /></label>
+                  <label class="field">Stage
+                    <select name="asset_stage_override">
+                      <option value="BOFU" selected>BOFU</option>
+                      <option value="MOFU">MOFU</option>
+                      <option value="TOFU">TOFU</option>
+                    </select>
+                  </label>
+                  <label class="field">Topic <input name="topic" value="decision" /></label>
+                  <label class="field">Audience <input name="audience" value="late stage shortlist" /></label>
+                  <label class="field">Volume <input name="volume" value="highly targeted" /></label>
+                  <label class="field">Sequence <input name="sequence" value="decision" /></label>
+                  <label class="field">Vertical <input name="vertical_override" value="healthcare" /></label>
+                  <label class="field">Campaign Approval Rate <input name="history_approval_rate" type="number" min="0" max="1" step="0.01" value="0.77" /></label>
+                </div>
+              </details>
+
+              <details class="cfg-group">
+                <summary>Partner &amp; Account Signals</summary>
+                <div class="cfg-body field-grid">
+                  <label class="field">Partner ID <input name="partner_id" value="partner-alpha" /></label>
+                  <label class="field">Partner Approval Rate <input name="approval_rate_6m" type="number" min="0" max="1" step="0.01" value="0.81" /></label>
+                  <label class="field">Client Approval Rate <input name="approval_rate_client_6m" type="number" min="0" max="1" step="0.01" value="0.79" /></label>
+                  <label class="field">Vertical Approval Rate <input name="approval_rate_vertical_6m" type="number" min="0" max="1" step="0.01" value="0.76" /></label>
+                  <label class="field" style="grid-column:1/-1;">Account Acceptance Rate <input name="client_acceptance_rate_6m" type="number" min="0" max="1" step="0.01" value="0.74" /></label>
+                </div>
+              </details>
+
+              <details class="cfg-group">
+                <summary>Campaign Brief</summary>
+                <div class="cfg-body">
+                  <label class="field">Brief Text <textarea name="brief_text">Target healthcare provider executives across clinical, finance, and IT teams in the United States. Prioritize enterprise hospitals evaluating ROI and implementation readiness.</textarea></label>
+                </div>
+              </details>
+
+            </form>
+
+            <!-- Buying Group builder (outside form, not a form field) -->
+            <details class="cfg-group">
+              <summary>Buying Group Definition</summary>
+              <div class="cfg-body">
+                <div class="bg-controls">
+                  <input id="bgProductCategory" placeholder="Product category" style="font-size:0.75rem;" />
+                  <select id="bgGroupType" style="font-size:0.75rem; width:auto;">
+                    <option value="recommended">Recommended</option>
+                    <option value="manual">Manual</option>
+                  </select>
+                  <label style="display:flex; align-items:center; gap:4px; font-size:0.72rem; font-weight:600; color:var(--muted); white-space:nowrap; text-transform:uppercase; letter-spacing:0.05em;">
+                    <input id="bgVerified" type="checkbox" style="width:auto; accent-color:var(--accent);" />
+                    Verified
+                  </label>
+                  <button id="addPersonaBtn" class="btn btn-secondary" type="button" style="padding:4px 9px; font-size:0.72rem;">+ Add</button>
+                </div>
+                <table class="bg-table" id="bgPersonaTable">
+                  <thead>
+                    <tr>
+                      <th>Function</th>
+                      <th>Level</th>
+                      <th>Role</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="bgPersonaBody"></tbody>
+                </table>
+              </div>
+            </details>
+
           </div>
         </aside>
-      </section>
 
-      <section class="workspace">
-        <section class="panel uploader">
-          <div class="section-head">
-            <div>
-              <h2>1. Import Leads</h2>
-              <p class="helper">Upload a CSV or Excel file from the portal source. The backend will interpret the headers, map required fields, and trigger scoring.</p>
+        <!-- ── Content area ──────────────────────────────────────────────  -->
+        <section class="content">
+
+          <!-- Results header with KPIs -->
+          <div class="results-header">
+            <div class="results-title-group">
+              <span class="results-title">Scored Output</span>
+              <span class="results-sub">Click any row to expand breakdown, buying group &amp; selling story</span>
             </div>
-            <span id="importPill" class="pill warn">Waiting for file</span>
-          </div>
-
-          <div id="dropzone" class="dropzone">
-            <input id="fileInput" type="file" accept=".csv,.xlsx,.xls,.xlsm,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-            <h3>Drop a lead file here</h3>
-            <p>Or click to browse. CSV and Excel are supported. The portal interprets required fields from the uploaded headers.</p>
-          </div>
-
-          <div class="button-row">
-            <label class="toggle">
-              <input id="autoScoreToggle" type="checkbox" checked />
-              <span>Auto-score immediately after import</span>
-            </label>
-            <button id="scoreButton" class="primary" type="button" disabled>Score Uploaded Leads</button>
-            <button id="exportButton" class="secondary" type="button" disabled>Download Scored Output</button>
-          </div>
-
-          <div class="upload-status">
-            <p id="statusMessage" class="muted">No file loaded yet.</p>
-          </div>
-
-          <div class="preview">
-            <div class="preview-grid">
-              <div class="preview-box">
-                <strong>Imported Rows</strong>
-                <span id="previewRows">0</span>
+            <div class="kpi-row">
+              <div class="kpi-cell">
+                <span class="kpi-num" id="statTotal">—</span>
+                <span class="kpi-label">Total</span>
               </div>
-              <div class="preview-box">
-                <strong>Header Mapping</strong>
-                <span id="previewColumns">Not checked</span>
+              <div class="kpi-cell">
+                <span class="kpi-num" id="statDeliver" style="color:var(--teal);">—</span>
+                <span class="kpi-label">Deliver</span>
               </div>
-              <div class="preview-box">
-                <strong>Last Action</strong>
-                <span id="previewAction">Awaiting import</span>
+              <div class="kpi-cell">
+                <span class="kpi-num" id="statReviewHold" style="color:var(--gold);">—</span>
+                <span class="kpi-label">Rev/Hold</span>
+              </div>
+              <div class="kpi-cell">
+                <span class="kpi-num" id="statAverage">—</span>
+                <span class="kpi-label">Avg Score</span>
               </div>
             </div>
           </div>
 
-          <details>
-            <summary>Supported CSV columns</summary>
-            <div class="details-body">
-              <p class="helper">
-                Required: <code>email</code>, <code>first_name</code>, <code>last_name</code>, <code>job_title</code>, <code>company_name</code>, <code>domain</code>, <code>industry</code>, <code>geography</code>.
-              </p>
-              <p class="helper">
-                Optional: <code>lead_id</code>, <code>submitted_at</code>, <code>company_size</code>, <code>source_partner</code>, <code>partner_id</code>, <code>approval_rate_6m</code>, <code>approval_rate_client_6m</code>, <code>approval_rate_vertical_6m</code>, <code>client_acceptance_rate_6m</code>, <code>email1_opened</code>, <code>email1_clicked</code>, <code>email2_opened</code>, <code>email2_clicked</code>, <code>download_count</code>, <code>visit_count</code>. Header variants such as <code>Email Address</code>, <code>First Name</code>, <code>Company</code>, or <code>Website</code> are interpreted automatically.
-              </p>
+          <!-- Distribution (hidden until data loads) -->
+          <div class="dist-wrap" id="distWrap" hidden>
+            <div class="dist-chart" id="distBars"></div>
+            <div class="dist-label-row">
+              <span class="dist-legend-item"><span class="dist-dot" style="background:var(--red);"></span>Hold &lt;50</span>
+              <span class="dist-legend-item"><span class="dist-dot" style="background:var(--gold);"></span>Review 50–67</span>
+              <span class="dist-legend-item"><span class="dist-dot" style="background:var(--teal);"></span>Deliver ≥68</span>
             </div>
-          </details>
+          </div>
+
+          <!-- Table / empty state -->
+          <div class="table-wrap">
+            <div id="resultsEmpty" class="empty-state">
+              <div class="empty-icon">📊</div>
+              <div class="empty-title">No leads scored yet</div>
+              <div class="empty-sub">Upload a CSV or Excel file on the left to score leads and see results here.</div>
+            </div>
+            <div id="resultsTableWrap" hidden>
+              <table id="resultsTable">
+                <thead>
+                  <tr>
+                    <th>Lead</th>
+                    <th>Company</th>
+                    <th>Score</th>
+                    <th>Decision</th>
+                    <th>Quadrant</th>
+                    <th>Top Reason</th>
+                    <th>Buying Group</th>
+                    <th style="width:32px;"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
         </section>
+      </div><!-- /main -->
 
-        <section class="panel configurator">
-          <div class="section-head">
-            <div>
-              <h2>2. Campaign Context</h2>
-              <p class="helper">These values are applied across the imported lead file before the portal calls the APIs. You can also load them from a one-row campaign CSV.</p>
-            </div>
-          </div>
+    </div><!-- /app -->
 
-          <input id="campaignFileInput" type="file" accept=".csv,text/csv" hidden />
-          <div class="button-row" style="margin-top: 0; margin-bottom: 18px;">
-            <button id="loadCampaignCsvButton" class="secondary" type="button">Upload Campaign Context CSV</button>
-            <button id="resetCampaignButton" class="secondary" type="button">Reset Campaign Fields</button>
-          </div>
-          <p id="campaignStatusMessage" class="muted">Using the values currently shown in the form.</p>
-
-          <form id="campaignForm" class="field-grid">
-            <label>
-              Client ID
-              <input name="client_id" value="client-health-01" required />
-            </label>
-            <label>
-              Campaign ID
-              <input name="campaign_id" value="HC-BOFU-2026-01" required />
-            </label>
-            <label>
-              Campaign Name
-              <input name="campaign_name" value="Clinical ROI Acceleration" required />
-            </label>
-            <label>
-              Asset Name
-              <input name="asset_name" value="Clinical ROI Case Study" required />
-            </label>
-            <label>
-              Asset Type
-              <input name="asset_type" value="case study" />
-            </label>
-            <label>
-              Funnel Stage Override
-              <select name="asset_stage_override">
-                <option value="BOFU" selected>BOFU</option>
-                <option value="MOFU">MOFU</option>
-                <option value="TOFU">TOFU</option>
-              </select>
-            </label>
-            <label>
-              Topic
-              <input name="topic" value="decision" />
-            </label>
-            <label>
-              Audience
-              <input name="audience" value="late stage shortlist" />
-            </label>
-            <label>
-              Volume
-              <input name="volume" value="highly targeted" />
-            </label>
-            <label>
-              Sequence
-              <input name="sequence" value="decision" />
-            </label>
-            <label>
-              Vertical Override
-              <input name="vertical_override" value="healthcare" />
-            </label>
-            <label>
-              Campaign Approval Rate
-              <input name="history_approval_rate" type="number" min="0" max="1" step="0.01" value="0.77" />
-            </label>
-            <label>
-              Default Partner ID
-              <input name="partner_id" value="partner-alpha" />
-            </label>
-            <label>
-              Default Partner Approval Rate
-              <input name="approval_rate_6m" type="number" min="0" max="1" step="0.01" value="0.81" />
-            </label>
-            <label>
-              Default Client Approval Rate
-              <input name="approval_rate_client_6m" type="number" min="0" max="1" step="0.01" value="0.79" />
-            </label>
-            <label>
-              Default Vertical Approval Rate
-              <input name="approval_rate_vertical_6m" type="number" min="0" max="1" step="0.01" value="0.76" />
-            </label>
-            <label>
-              Default Account Acceptance Rate
-              <input name="client_acceptance_rate_6m" type="number" min="0" max="1" step="0.01" value="0.74" />
-            </label>
-            <label style="grid-column: 1 / -1;">
-              Brief Text
-              <textarea name="brief_text">Target healthcare provider executives across clinical, finance, and IT teams in the United States. Prioritize enterprise hospitals evaluating ROI and implementation readiness.</textarea>
-            </label>
-          </form>
-
-          <!-- Buying Group Definition Builder -->
-          <div class="bg-builder" style="margin-top: 20px;">
-            <div class="bg-builder-head">
-              <strong>Buying Group Definition</strong>
-              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-                <label style="display:flex; align-items:center; gap:6px; font-size:0.82rem; font-weight:600;">
-                  <input id="bgVerified" type="checkbox" style="width:auto;" />
-                  Verified
-                </label>
-                <select id="bgGroupType" style="border-radius:999px; padding:5px 10px; font-size:0.82rem; width:auto;">
-                  <option value="recommended">Recommended</option>
-                  <option value="manual">Manually Created</option>
-                </select>
-                <input id="bgProductCategory" placeholder="Product category (e.g. Marketing Automation Platform)"
-                  style="border-radius:999px; padding:5px 12px; font-size:0.82rem; min-width:220px;" />
-                <button id="addPersonaBtn" class="secondary" type="button" style="padding:6px 14px; font-size:0.82rem;">+ Add Persona</button>
-              </div>
-            </div>
-            <table class="bg-persona-table" id="bgPersonaTable">
-              <thead>
-                <tr>
-                  <th>Job Function</th>
-                  <th>Job Level</th>
-                  <th>Role</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="bgPersonaBody">
-                <!-- Pre-populated with sample buying group -->
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </section>
-
-      <section class="stats-grid">
-        <article class="panel results stat-card">
-          <strong>Total Scored</strong>
-          <span id="statTotal">0</span>
-        </article>
-        <article class="panel results stat-card">
-          <strong>Deliver</strong>
-          <span id="statDeliver">0</span>
-        </article>
-        <article class="panel results stat-card">
-          <strong>Review / Hold</strong>
-          <span id="statReviewHold">0</span>
-        </article>
-        <article class="panel results stat-card">
-          <strong>Average Score</strong>
-          <span id="statAverage">0</span>
-        </article>
-      </section>
-
-      <section class="report-grid" style="margin-top: 22px;">
-        <article class="panel reporting report-card">
-          <strong>Accounts in Campaign</strong>
-          <span id="reportAccounts">0</span>
-        </article>
-        <article class="panel reporting report-card">
-          <strong>Accounts with BDR Trigger</strong>
-          <span id="reportTriggers">0</span>
-        </article>
-        <article class="panel reporting report-card">
-          <strong>Portal Status</strong>
-          <span id="reportStatus">No scored batch yet.</span>
-        </article>
-      </section>
-
-      <section class="panel results" style="margin-top: 22px; padding: 24px 28px 18px;">
-        <div class="section-head" style="margin-bottom: 10px;">
-          <div>
-            <h2 style="font-size:1rem; margin:0;">Score Distribution</h2>
-          </div>
-        </div>
-        <div id="distEmpty" class="muted" style="font-size:0.9rem;">Import leads to see score distribution.</div>
-        <div id="distChart" hidden>
-          <div class="dist-chart" id="distBars"></div>
-          <div style="font-size:0.8rem; color:var(--muted); margin-top:6px;">
-            <span style="color:var(--danger)">■</span> Hold (&lt;50) &nbsp;
-            <span style="color:var(--gold)">■</span> Review (50–67) &nbsp;
-            <span style="color:var(--teal)">■</span> Deliver (≥68)
-          </div>
-        </div>
-      </section>
-
-      <section class="panel results" style="margin-top: 22px;">
-        <div class="section-head">
-          <div>
-            <h2>3. Scored Output</h2>
-            <p class="helper">Click any row to expand the score breakdown. Use this as the review table before export.</p>
-          </div>
-        </div>
-        <div id="resultsEmpty" class="empty-state">
-          Import a CSV to see scored leads, delivery actions, quadrants, and plain-English reasons.
-        </div>
-        <div id="resultsTableWrap" class="results-table-wrap" hidden>
-          <table id="resultsTable">
-            <thead>
-              <tr>
-                <th>Lead</th>
-                <th>Company</th>
-                <th>Score</th>
-                <th>Decision</th>
-                <th>Quadrant</th>
-                <th>Top Reason</th>
-                <th>Buying Group</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="panel reporting" style="margin-top: 22px;">
-        <div class="section-head">
-          <div>
-            <h2>4. Campaign Buying-Group Report</h2>
-            <p class="helper">Pulled automatically after scoring from the persisted campaign report endpoint.</p>
-          </div>
-        </div>
-        <div id="reportEmpty" class="empty-state">
-          Score a batch to populate the campaign-level account report.
-        </div>
-        <div id="reportTableWrap" class="report-table-wrap" hidden>
-          <table id="reportTable">
-            <thead>
-              <tr>
-                <th>Account</th>
-                <th>Product</th>
-                <th>Personas</th>
-                <th>Completeness</th>
-                <th>DM Coverage</th>
-                <th>Role Coverage</th>
-                <th>Stage</th>
-                <th>BDR Trigger</th>
-                <th>Missing</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="footnote">
-          Portal behavior: import leads, call <code>/score/batch</code>, then call <code>/reports/campaign/{campaign_id}</code>, and finally return a downloadable scored file to the operator.
-        </p>
-      </section>
-    </main>
+    <!-- Hidden elements needed by JS state -->
+    <span id="reportAccounts" style="display:none;">0</span>
+    <span id="reportTriggers" style="display:none;">0</span>
+    <span id="reportStatus" style="display:none;"></span>
+    <div id="reportEmpty" style="display:none;"></div>
+    <div id="reportTableWrap" style="display:none;"><table id="reportTable"><tbody></tbody></table></div>
+    <div id="distChart" style="display:none;"></div>
+    <div id="distEmpty" style="display:none;"></div>
+    <span id="healthPill" style="display:none;"></span>
 
     <script>
       const state = {
@@ -1198,12 +1459,16 @@
         leadLookup: new Map(),
         batchResults: null,
         campaignReport: null,
+        campaignSpecFile: null,
       };
 
       const refs = {
         dropzone: document.getElementById("dropzone"),
         fileInput: document.getElementById("fileInput"),
         campaignFileInput: document.getElementById("campaignFileInput"),
+        campaignSpecFileInput: document.getElementById("campaignSpecFileInput"),
+        loadCampaignXlsxButton: document.getElementById("loadCampaignXlsxButton"),
+        clearCampaignSpecButton: document.getElementById("clearCampaignSpecButton"),
         autoScoreToggle: document.getElementById("autoScoreToggle"),
         scoreButton: document.getElementById("scoreButton"),
         exportButton: document.getElementById("exportButton"),
@@ -1218,6 +1483,7 @@
         apiBaseValue: document.getElementById("apiBaseValue"),
         importPill: document.getElementById("importPill"),
         statusMessage: document.getElementById("statusMessage"),
+        statusStrip: document.getElementById("statusStrip"),
         previewRows: document.getElementById("previewRows"),
         previewColumns: document.getElementById("previewColumns"),
         previewAction: document.getElementById("previewAction"),
@@ -1236,6 +1502,7 @@
         reportTableBody: document.querySelector("#reportTable tbody"),
         distEmpty: document.getElementById("distEmpty"),
         distChart: document.getElementById("distChart"),
+        distWrap: document.getElementById("distWrap"),
       };
 
       // ── Buying Group Builder ─────────────────────────────────────────────
@@ -1253,17 +1520,16 @@
         "Decision-Maker", "Influencer", "Champion", "User", "Gatekeeper",
       ];
 
-      // Default buying group (the sample from the product brief)
       const DEFAULT_BG = [
-        { job_function: "Finance",                    job_level: "C-Suite",         role: "Decision-Maker" },
-        { job_function: "Information Technology (IT)", job_level: "C-Suite",         role: "Decision-Maker" },
-        { job_function: "Information Technology (IT)", job_level: "Director",        role: "Influencer" },
-        { job_function: "Network Management",          job_level: "Director",        role: "Influencer" },
-        { job_function: "Sales",                       job_level: "Director",        role: "Champion" },
-        { job_function: "Customer Service",            job_level: "Manager",         role: "User" },
-        { job_function: "Information Technology (IT)", job_level: "Manager",         role: "User" },
-        { job_function: "Procurement",                 job_level: "Manager",         role: "Gatekeeper" },
-        { job_function: "Operations",                  job_level: "Vice President",  role: "Influencer" },
+        { job_function: "Finance",                    job_level: "C-Suite",        role: "Decision-Maker" },
+        { job_function: "Information Technology (IT)", job_level: "C-Suite",        role: "Decision-Maker" },
+        { job_function: "Information Technology (IT)", job_level: "Director",       role: "Influencer" },
+        { job_function: "Network Management",          job_level: "Director",       role: "Influencer" },
+        { job_function: "Sales",                       job_level: "Director",       role: "Champion" },
+        { job_function: "Customer Service",            job_level: "Manager",        role: "User" },
+        { job_function: "Information Technology (IT)", job_level: "Manager",        role: "User" },
+        { job_function: "Procurement",                 job_level: "Manager",        role: "Gatekeeper" },
+        { job_function: "Operations",                  job_level: "Vice President", role: "Influencer" },
       ];
 
       function makeFunctionSelect(val) {
@@ -1282,9 +1548,9 @@
           <td>${makeFunctionSelect(fn)}</td>
           <td>${makeLevelSelect(lvl)}</td>
           <td>${makeRoleSelect(role)}</td>
-          <td><button class="remove-persona-btn" type="button">✕</button></td>
+          <td><button class="rm-btn" type="button">✕</button></td>
         `;
-        tr.querySelector(".remove-persona-btn").addEventListener("click", () => tr.remove());
+        tr.querySelector(".rm-btn").addEventListener("click", () => tr.remove());
         document.getElementById("bgPersonaBody").appendChild(tr);
       }
 
@@ -1318,18 +1584,79 @@
         bindUploadEvents();
         refs.scoreButton.addEventListener("click", scoreImportedLeads);
         refs.exportButton.addEventListener("click", downloadScoredOutput);
+        refs.loadCampaignXlsxButton.addEventListener("click", () => refs.campaignSpecFileInput.click());
         refs.loadCampaignCsvButton.addEventListener("click", () => refs.campaignFileInput.click());
         refs.resetCampaignButton.addEventListener("click", resetCampaignForm);
         refs.downloadLeadTemplateButton.addEventListener("click", downloadLeadTemplate);
         refs.downloadCampaignTemplateButton.addEventListener("click", downloadCampaignTemplate);
         refs.campaignFileInput.addEventListener("change", async (event) => {
           const [file] = event.target.files || [];
-          if (file) {
-            await handleCampaignFile(file);
+          if (file) await handleCampaignFile(file);
+        });
+        refs.campaignSpecFileInput.addEventListener("change", async (event) => {
+          const [file] = event.target.files || [];
+          if (!file) return;
+          state.campaignSpecFile = file;
+          const shortName = file.name.length > 22 ? file.name.slice(0, 20) + "…" : file.name;
+          refs.loadCampaignXlsxButton.textContent = `Spec: ${shortName}`;
+          refs.clearCampaignSpecButton.style.display = "";
+          refs.campaignStatusMessage.textContent = `Parsing ${file.name}…`;
+
+          try {
+            const fd = new FormData();
+            fd.append("campaign_spec_file", file, file.name);
+            const resp = await fetch("/portal/parse-spec", { method: "POST", body: fd });
+            if (!resp.ok) {
+              const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+              refs.campaignStatusMessage.textContent = `Spec parse error: ${err.detail || resp.statusText}`;
+              return;
+            }
+            const ctx = await resp.json();
+
+            // Populate flat fields
+            const flat = {
+              client_id: ctx.client_id,
+              campaign_id: ctx.campaign_id,
+              campaign_name: ctx.campaign_name,
+              asset_name: ctx.asset_name,
+              brief_text: ctx.brief_text,
+              history_approval_rate: ctx.history_approval_rate,
+            };
+            Object.entries(flat).forEach(([key, val]) => {
+              if (val == null || val === "") return;
+              const el = refs.campaignForm.querySelector(`[name="${key}"]`);
+              if (el) el.value = val;
+            });
+
+            // Populate vertical from first industry
+            const industries = ctx.target_profile?.industries || [];
+            if (industries.length) {
+              const vEl = refs.campaignForm.querySelector('[name="vertical_override"]');
+              if (vEl) vEl.value = industries[0];
+            }
+
+            // Populate buying group personas
+            const personas = ctx.target_profile?.required_personas || [];
+            if (personas.length) {
+              document.getElementById("bgPersonaBody").innerHTML = "";
+              personas.forEach(p => addPersonaRow(p, JOB_LEVELS[2], BG_ROLES[0]));
+              const catEl = document.getElementById("bgProductCategory");
+              if (catEl && !catEl.value) catEl.value = ctx.campaign_name || ctx.campaign_id;
+            }
+
+            refs.campaignStatusMessage.textContent = `Campaign spec loaded: ${file.name} — form populated from spec.`;
+          } catch (e) {
+            refs.campaignStatusMessage.textContent = `Spec loaded (parse failed: ${e.message}) — will use form values.`;
           }
         });
+        refs.clearCampaignSpecButton.addEventListener("click", () => {
+          state.campaignSpecFile = null;
+          refs.campaignSpecFileInput.value = "";
+          refs.loadCampaignXlsxButton.textContent = "Upload Campaign Spec";
+          refs.clearCampaignSpecButton.style.display = "none";
+          refs.campaignStatusMessage.textContent = "Spec cleared — using form values.";
+        });
         document.getElementById("addPersonaBtn").addEventListener("click", () => addPersonaRow());
-        // Pre-populate with the default buying group
         DEFAULT_BG.forEach(p => addPersonaRow(p.job_function, p.job_level, p.role));
         document.getElementById("bgProductCategory").value = "Marketing Automation Platform";
         await fetchHealth();
@@ -1338,31 +1665,17 @@
       function bindUploadEvents() {
         refs.fileInput.addEventListener("change", async (event) => {
           const [file] = event.target.files || [];
-          if (file) {
-            await handleFile(file);
-          }
+          if (file) await handleFile(file);
         });
-
-        ["dragenter", "dragover"].forEach((eventName) => {
-          refs.dropzone.addEventListener(eventName, (event) => {
-            event.preventDefault();
-            refs.dropzone.classList.add("dragging");
-          });
+        ["dragenter", "dragover"].forEach(e => {
+          refs.dropzone.addEventListener(e, ev => { ev.preventDefault(); refs.dropzone.classList.add("dragging"); });
         });
-
-        ["dragleave", "drop"].forEach((eventName) => {
-          refs.dropzone.addEventListener(eventName, (event) => {
-            event.preventDefault();
-            refs.dropzone.classList.remove("dragging");
-          });
+        ["dragleave", "drop"].forEach(e => {
+          refs.dropzone.addEventListener(e, ev => { ev.preventDefault(); refs.dropzone.classList.remove("dragging"); });
         });
-
         refs.dropzone.addEventListener("drop", async (event) => {
           const [file] = event.dataTransfer?.files || [];
-          if (file) {
-            refs.fileInput.files = event.dataTransfer.files;
-            await handleFile(file);
-          }
+          if (file) { refs.fileInput.files = event.dataTransfer.files; await handleFile(file); }
         });
       }
 
@@ -1370,13 +1683,12 @@
         try {
           const response = await fetch("/health");
           const payload = await response.json();
-          refs.healthPill.textContent = payload.status === "healthy" ? "API Healthy" : "API Check";
-          refs.healthPill.className = payload.status === "healthy" ? "pill" : "pill warn";
-          refs.runtimeValue.textContent = `${payload.architecture} / ${payload.runtime_model}`;
-        } catch (error) {
-          refs.healthPill.textContent = "API Offline";
-          refs.healthPill.className = "pill danger";
-          refs.runtimeValue.textContent = "Unable to reach /health";
+          const isHealthy = payload.status === "healthy";
+          refs.runtimeValue.textContent = `${payload.runtime_model} · ${payload.architecture}`;
+          document.getElementById("statusDot").className = "status-dot" + (isHealthy ? "" : " warn");
+        } catch {
+          refs.runtimeValue.textContent = "API offline";
+          document.getElementById("statusDot").className = "status-dot error";
         }
       }
 
@@ -1385,20 +1697,18 @@
         state.uploadedFileName = file.name;
         refs.scoreButton.disabled = false;
         refs.exportButton.disabled = true;
-        refs.previewRows.textContent = "Pending";
-        refs.previewColumns.textContent = "Will be interpreted by the backend";
-        refs.previewAction.textContent = refs.autoScoreToggle.checked ? "Auto-score queued" : "Ready for manual scoring";
+        refs.previewRows.textContent = "…";
+        refs.previewColumns.textContent = "Interpreting headers";
+        refs.previewAction.textContent = refs.autoScoreToggle.checked ? "Auto-scoring" : "Ready";
+        setStrip(`Loaded ${file.name}`, "");
         refs.importPill.textContent = "File loaded";
-        refs.importPill.className = "pill";
-        setPortalStatus(`Loaded ${file.name}.`, "ready");
+        refs.importPill.className = "import-pill ready";
         try {
-          if (refs.autoScoreToggle.checked) {
-            await scoreImportedLeads();
-          }
+          if (refs.autoScoreToggle.checked) await scoreImportedLeads();
         } catch (error) {
-          setPortalStatus(error.message || "Unable to parse the uploaded file.", "danger");
+          setStrip(error.message || "Import failed.", "error");
           refs.importPill.textContent = "Import failed";
-          refs.importPill.className = "pill danger";
+          refs.importPill.className = "import-pill error";
         }
       }
 
@@ -1407,111 +1717,88 @@
           const text = await file.text();
           const campaignValues = campaignCsvToObject(text);
           const entries = Object.entries(campaignValues);
-          if (!entries.length) {
-            throw new Error("The campaign context CSV did not contain any readable values.");
-          }
-
+          if (!entries.length) throw new Error("No readable values in campaign CSV.");
           let appliedCount = 0;
           entries.forEach(([key, value]) => {
             const field = refs.campaignForm.querySelector(`[name="${cssEscape(key)}"]`);
-            if (field) {
-              field.value = value;
-              appliedCount += 1;
-            }
+            if (field) { field.value = value; appliedCount++; }
           });
-
-          refs.campaignStatusMessage.textContent = `Loaded ${appliedCount} campaign field${appliedCount === 1 ? "" : "s"} from ${file.name}.`;
+          refs.campaignStatusMessage.textContent = `Loaded ${appliedCount} field${appliedCount === 1 ? "" : "s"} from ${file.name}.`;
         } catch (error) {
-          refs.campaignStatusMessage.textContent = error.message || "Unable to import the campaign context CSV.";
+          refs.campaignStatusMessage.textContent = error.message || "Unable to import CSV.";
         }
       }
 
       async function scoreImportedLeads() {
-        if (!state.uploadedFile) {
-          setPortalStatus("Upload a CSV or Excel file before scoring.", "danger");
-          return;
-        }
-
+        if (!state.uploadedFile) { setStrip("Upload a file before scoring.", "error"); return; }
         const formData = new FormData(refs.campaignForm);
         const campaignConfig = Object.fromEntries(formData.entries());
         const bgDef = getBuyingGroupDefinition();
         if (bgDef) campaignConfig.buying_group_definition = bgDef;
         refs.scoreButton.disabled = true;
-        setPortalStatus(`Uploading ${state.uploadedFileName || "lead file"} for scoring...`, "warn");
+        setStrip(`Scoring ${state.uploadedFileName}…`, "warn");
         refs.previewAction.textContent = "Calling /portal/import-score";
-
         try {
           const payload = new FormData();
           payload.append("file", state.uploadedFile, state.uploadedFile.name);
-          payload.append("campaign_context", JSON.stringify(campaignConfig));
-          const response = await fetch("/portal/import-score", {
-            method: "POST",
-            body: payload,
-          });
-          if (!response.ok) {
-            const errorPayload = await safeJson(response);
-            throw new Error(errorPayload?.detail || "Batch scoring failed.");
+          if (state.campaignSpecFile) {
+            payload.append("campaign_spec_file", state.campaignSpecFile, state.campaignSpecFile.name);
+          } else {
+            payload.append("campaign_context", JSON.stringify(campaignConfig));
           }
-
+          const response = await fetch("/portal/import-score", { method: "POST", body: payload });
+          if (!response.ok) {
+            const err = await safeJson(response);
+            throw new Error(err?.detail || "Scoring failed.");
+          }
           const responsePayload = await response.json();
           state.batchResults = responsePayload.batch_result;
           state.campaignReport = responsePayload.campaign_report;
           state.leadLookup = new Map(
-            (responsePayload.imported_leads || []).map((lead) => [
-              lead.lead_id,
-              {
-                company: {
-                  company_name: lead.company_name,
-                  domain: lead.domain,
-                },
-              },
-            ])
+            (responsePayload.imported_leads || []).map(lead => [lead.lead_id, { company: { company_name: lead.company_name, domain: lead.domain } }])
           );
           refs.previewRows.textContent = String(responsePayload.total_rows || 0);
           refs.previewColumns.textContent = Object.keys(responsePayload.interpreted_headers || {}).length
-            ? Object.entries(responsePayload.interpreted_headers)
-                .map(([field, source]) => `${field} <- ${source}`)
-                .slice(0, 4)
-                .join(" | ")
-            : "No header mappings returned";
-          refs.previewAction.textContent = `${responsePayload.detected_format.toUpperCase()} imported and scored`;
+            ? Object.entries(responsePayload.interpreted_headers).map(([f, s]) => `${f}←${s}`).slice(0, 5).join(" · ")
+            : "—";
+          refs.previewAction.textContent = `${responsePayload.detected_format.toUpperCase()} scored`;
+          refs.importPill.textContent = `${responsePayload.total_rows} rows`;
+          refs.importPill.className = "import-pill ready";
           renderBatchResults(responsePayload.batch_result);
           renderCampaignReport(responsePayload.campaign_report);
           refs.exportButton.disabled = false;
-          const warningText = (responsePayload.warnings || []).length
-            ? ` Warnings: ${responsePayload.warnings.join(" ")}`
-            : "";
-          setPortalStatus(
-            `Scored ${responsePayload.batch_result.scored_leads} leads successfully from ${responsePayload.filename}.${warningText}`,
-            "ready"
-          );
+          const warn = (responsePayload.warnings || []).length ? ` · ${responsePayload.warnings[0]}` : "";
+          setStrip(`Scored ${responsePayload.batch_result.scored_leads} leads from ${responsePayload.filename}${warn}`, "ok");
         } catch (error) {
-          setPortalStatus(error.message || "Scoring failed.", "danger");
+          setStrip(error.message || "Scoring failed.", "error");
         } finally {
           refs.scoreButton.disabled = false;
         }
       }
 
+      function setStrip(message, mode) {
+        refs.statusMessage.textContent = message;
+        refs.statusStrip.className = "status-strip" + (mode ? " " + mode : "");
+      }
+
       function scoreClass(score) {
-        if (score >= 68) return "score-deliver";
-        if (score >= 50) return "score-review";
-        return "score-hold";
+        if (score >= 68) return "s-deliver";
+        if (score >= 50) return "s-review";
+        return "s-hold";
       }
 
       function renderDistribution(results) {
         const buckets = [
-          { label: "0–19",  min: 0,  max: 20,  color: "var(--danger)" },
-          { label: "20–39", min: 20, max: 40,  color: "var(--danger)" },
-          { label: "40–49", min: 40, max: 50,  color: "var(--danger)" },
+          { label: "0–19",  min: 0,  max: 20,  color: "var(--red)" },
+          { label: "20–39", min: 20, max: 40,  color: "var(--red)" },
+          { label: "40–49", min: 40, max: 50,  color: "var(--red)" },
           { label: "50–59", min: 50, max: 60,  color: "var(--gold)" },
           { label: "60–67", min: 60, max: 68,  color: "var(--gold)" },
           { label: "68–79", min: 68, max: 80,  color: "var(--teal)" },
           { label: "80–89", min: 80, max: 90,  color: "var(--teal)" },
           { label: "90–100",min: 90, max: 101, color: "var(--teal)" },
         ];
-        const counts = buckets.map(b =>
-          results.filter(r => r.approval_score >= b.min && r.approval_score < b.max).length
-        );
+        const counts = buckets.map(b => results.filter(r => r.approval_score >= b.min && r.approval_score < b.max).length);
         const maxCount = Math.max(...counts, 1);
         const barsEl = document.getElementById("distBars");
         barsEl.innerHTML = "";
@@ -1520,14 +1807,10 @@
           const wrap = document.createElement("div");
           wrap.className = "dist-bar-wrap";
           wrap.title = `${b.label}: ${counts[i]} leads`;
-          wrap.innerHTML = `
-            <div class="dist-bar" style="height:${Math.max(pct, 2)}%; background:${b.color}; width:100%;"></div>
-            <div class="dist-label">${b.label}</div>
-          `;
+          wrap.innerHTML = `<div class="dist-bar" style="height:${Math.max(pct, 4)}%; background:${b.color};"></div>`;
           barsEl.appendChild(wrap);
         });
-        document.getElementById("distEmpty").hidden = true;
-        document.getElementById("distChart").hidden = false;
+        refs.distWrap.hidden = false;
       }
 
       function renderBreakdownRow(item, colSpan) {
@@ -1540,11 +1823,10 @@
           { label: "Fit",            bdKey: "fit_score",              anKey: "fit" },
           { label: "Intent",         bdKey: "intent_score",           anKey: "intent" },
           { label: "Partner Signal", bdKey: "partner_signal_score",   anKey: "partner_signal" },
-          { label: "Client History", bdKey: "client_history_score",   anKey: "client_history" },
-          { label: "Campaign Hist.", bdKey: "campaign_history_score", anKey: "campaign_history" },
           { label: "Data Quality",   bdKey: "data_quality_score",     anKey: "data_quality" },
           { label: "ICP Match",      bdKey: "icp_match_score",        anKey: "icp_match" },
         ];
+
         const cards = fields.map(f => {
           const val = bd[f.bdKey] ?? "—";
           const pct = typeof val === "number" ? val : 0;
@@ -1557,99 +1839,191 @@
                 ${flags.map(g => `<span class="signal-flag">${escapeHtml(g)}</span>`).join("")}
                </div>`
             : "";
-          return `<div class="breakdown-item">
-            <div class="b-label">${f.label}</div>
-            <div class="b-val">${val}</div>
-            <div class="breakdown-mini-bar"><div class="breakdown-mini-fill" style="width:${pct}%"></div></div>
+          return `<div class="bd-card">
+            <div class="bd-label">${f.label}</div>
+            <div class="bd-val">${val}</div>
+            <div class="bd-mini-track"><div class="bd-mini-fill" style="width:${pct}%"></div></div>
             ${detailHtml}
           </div>`;
         }).join("");
 
-        // Persona coverage chips
+        // Persona coverage
         let coverageHtml = "";
         if ((bg.persona_coverage || []).length) {
           const chips = bg.persona_coverage.map(p => {
-            const cls = p.covered ? "chip-covered" : "chip-uncovered";
+            const cls = p.covered ? "cov-covered" : "cov-uncovered";
             const icon = p.covered ? "✓" : "✗";
             const roleCls = rolePillClass(p.role);
-            return `<span class="coverage-chip ${cls}">
-              ${icon} <span class="role-pill ${roleCls}" style="padding:1px 6px;">${escapeHtml(p.role)}</span>
+            return `<span class="cov-chip ${cls}">
+              ${icon} <span class="role-pill ${roleCls}">${escapeHtml(p.role)}</span>
               ${escapeHtml(p.job_function)} · ${escapeHtml(p.job_level)}
-              ${p.covered_by ? `<span style="color:var(--muted);font-weight:400;font-size:0.7rem;">(${escapeHtml(p.covered_by)})</span>` : ""}
+              ${p.covered_by ? `<span style="color:var(--muted); font-weight:400;">(${escapeHtml(p.covered_by)})</span>` : ""}
             </span>`;
           }).join("");
+
           const dmPct = bg.decision_maker_coverage_pct ?? null;
-          const product = bg.product_category ? `<span style="font-weight:700;">${escapeHtml(bg.product_category)}</span>` : "Buying Group";
+          const product = bg.product_category ? escapeHtml(bg.product_category) : "Buying Group";
           const verifiedBadge = bg.is_verified
-            ? `<span class="badge deliver" style="font-size:0.72rem; padding:3px 8px;">✓ Verified</span>`
+            ? `<span class="badge badge-deliver" style="font-size:0.68rem;">Verified</span>`
             : (bg.group_type === "manual"
-              ? `<span class="badge champion" style="font-size:0.72rem; padding:3px 8px;">Manual</span>`
-              : `<span class="badge nurture" style="font-size:0.72rem; padding:3px 8px;">Recommended</span>`);
-          coverageHtml = `
-            <div style="margin-top:12px; padding-top:12px; border-top:1px solid rgba(23,33,45,0.07);">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
-                <span class="b-label" style="margin:0;">Buying Group — ${product}</span>
-                ${verifiedBadge}
-                ${dmPct !== null ? `<span style="font-size:0.78rem; color:var(--muted);">DM coverage: <strong>${dmPct}%</strong></span>` : ""}
-              </div>
-              <div class="coverage-grid">${chips}</div>
-            </div>`;
+              ? `<span class="badge badge-champion" style="font-size:0.68rem;">Manual</span>`
+              : `<span class="badge badge-review" style="font-size:0.68rem;">Recommended</span>`);
+
+          coverageHtml = `<div class="bg-section">
+            <div class="bg-section-label">
+              ${product} ${verifiedBadge}
+              ${dmPct !== null ? `<span style="font-weight:500; font-size:0.68rem;">DM coverage: <strong>${dmPct}%</strong></span>` : ""}
+            </div>
+            <div class="coverage-grid">${chips}</div>
+          </div>`;
         }
 
         // Selling story
         let storyHtml = "";
         if (story) {
           const motionCls = `motion-${story.motion}`;
-          const motionLabel = story.motion === "accelerate" ? "⚡ Accelerate" : story.motion === "nurture" ? "🌱 Nurture" : "⏸ Hold";
-          storyHtml = `
-            <div class="story-panel">
-              <div class="story-header">
-                <strong>Selling Story</strong>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <span class="story-motion ${motionCls}">${motionLabel}</span>
-                  <span style="font-size:0.76rem; color:var(--muted);">Confidence: ${escapeHtml(story.confidence)}</span>
-                </div>
+          const motionLabel = story.motion === "accelerate" ? "⚡ Accelerate" : story.motion === "nurture" ? "Nurture" : "Hold";
+          storyHtml = `<div class="story-panel">
+            <div class="story-head">
+              <span class="story-head-label">Selling Story</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="story-motion ${motionCls}">${motionLabel}</span>
+                <span style="font-size:0.68rem; color:var(--muted);">${escapeHtml(story.confidence)} confidence</span>
               </div>
-              <div class="story-body">
-                <div class="story-section">
-                  <div class="story-label">Lead</div>
-                  <div class="story-text">${escapeHtml(story.lead_narrative)}</div>
-                </div>
-                <div class="story-section">
-                  <div class="story-label">Account</div>
-                  <div class="story-text">${escapeHtml(story.account_narrative)}</div>
-                </div>
-                <div class="story-section">
-                  <div class="story-label">Buying Group</div>
-                  <div class="story-text">${escapeHtml(story.buying_group_narrative)}</div>
-                </div>
-                <div class="story-action">${escapeHtml(story.recommended_action)}</div>
+            </div>
+            <div class="story-body">
+              <div class="story-section">
+                <div class="story-slabel">Lead</div>
+                <div class="story-text">${escapeHtml(story.lead_narrative)}</div>
               </div>
-            </div>`;
+              <div class="story-section">
+                <div class="story-slabel">Account</div>
+                <div class="story-text">${escapeHtml(story.account_narrative)}</div>
+              </div>
+              <div class="story-section">
+                <div class="story-slabel">Buying Group</div>
+                <div class="story-text">${escapeHtml(story.buying_group_narrative)}</div>
+              </div>
+            </div>
+            <div class="story-action">${escapeHtml(story.recommended_action)}</div>
+          </div>`;
         }
+
+        // Buying Group card (prominent)
+        const bgScore = bg.buying_group_score ?? 0;
+        const bgScoreClass = bgScore >= 70 ? "bgs-green" : bgScore >= 40 ? "bgs-amber" : "bgs-red";
+        const bdrBadge = bg.bdr_trigger
+          ? `<span class="bdr-badge">BDR Ready</span>`
+          : "";
+        const funcPct = bg.function_coverage?.length
+          ? Math.min(100, Math.round(bg.function_coverage.length / 4 * 100))
+          : 0;
+        const dmPctVal = bg.decision_maker_coverage_pct ?? 0;
+
+        const personaList = (bg.persona_coverage || []).map(p => {
+          const cls = p.covered ? "cov-covered" : "cov-uncovered";
+          const icon = p.covered ? "✓" : "○";
+          const roleCls = rolePillClass(p.role);
+          return `<span class="cov-chip ${cls}">
+            ${icon} <span class="role-pill ${roleCls}">${escapeHtml(p.role)}</span>
+            ${escapeHtml(p.job_function)} · ${escapeHtml(p.job_level)}
+            ${p.covered_by ? `<span style="color:var(--muted); font-weight:400;">(${escapeHtml(p.covered_by)})</span>` : ""}
+          </span>`;
+        });
+        // Also list simple personas from function_coverage when no structured coverage
+        const inferredPersonas = !personaList.length && (bg.function_coverage || []).map(fn =>
+          `<span class="cov-chip cov-covered">✓ ${escapeHtml(fn)}</span>`
+        );
+        const missingPersonas = (bg.missing_personas || []).map(mp =>
+          `<span class="cov-chip cov-uncovered">○ ${escapeHtml(mp)}</span>`
+        );
+        const roleCoverageHtml = Object.entries(bg.role_coverage || {}).map(([role, pct]) =>
+          `<div class="role-cov-row"><span class="role-cov-label">${escapeHtml(role)}</span><div class="role-cov-track"><div class="role-cov-fill" style="width:${pct}%"></div></div><span class="role-cov-pct">${pct}%</span></div>`
+        ).join("");
+
+        const buyingGroupCard = `<div class="bg-card">
+          <div class="bg-card-header">
+            <div class="bg-card-title">Buying Group</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="bgs-badge ${bgScoreClass}">${bgScore}</span>
+              ${bdrBadge}
+              <span style="font-size:0.68rem; color:var(--muted);">${escapeHtml(bg.journey_stage_reached || "—")} · ${bg.unique_persona_count ?? 0} persona${(bg.unique_persona_count ?? 0) !== 1 ? "s" : ""}</span>
+            </div>
+          </div>
+          <div class="bg-card-body">
+            <div class="bg-coverage-bars">
+              <div class="cov-bar-row">
+                <span class="cov-bar-label">Function Coverage</span>
+                <div class="cov-bar-track"><div class="cov-bar-fill" style="width:${funcPct}%"></div></div>
+                <span class="cov-bar-pct">${funcPct}%</span>
+              </div>
+              ${dmPctVal > 0 ? `<div class="cov-bar-row">
+                <span class="cov-bar-label">Decision-Maker</span>
+                <div class="cov-bar-track"><div class="cov-bar-fill cov-bar-dm" style="width:${dmPctVal}%"></div></div>
+                <span class="cov-bar-pct">${dmPctVal}%</span>
+              </div>` : ""}
+            </div>
+            ${personaList.length || inferredPersonas.length ? `<div class="bg-persona-section">
+              <div class="bg-section-sublabel">Personas Engaged</div>
+              <div class="coverage-grid">${(personaList.length ? personaList : inferredPersonas).join("")}</div>
+            </div>` : ""}
+            ${missingPersonas.length ? `<div class="bg-persona-section">
+              <div class="bg-section-sublabel" style="color:var(--red);">Missing Personas</div>
+              <div class="coverage-grid">${missingPersonas.join("")}</div>
+            </div>` : ""}
+            ${roleCoverageHtml ? `<div class="bg-persona-section">
+              <div class="bg-section-sublabel">Role Coverage</div>
+              ${roleCoverageHtml}
+            </div>` : ""}
+          </div>
+        </div>`;
+
+        // Account score section
+        const acct = item.account_score;
+        const acctHtml = acct ? `<div class="acct-score-card">
+          <div class="bg-card-header">
+            <div class="bg-card-title">Account Score</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="bgs-badge ${acct.account_score >= 70 ? "bgs-green" : acct.account_score >= 45 ? "bgs-amber" : "bgs-red"}">${acct.account_score}</span>
+              <span class="badge badge-${acct.recommended_action === "accelerate" ? "deliver" : acct.recommended_action === "engage" ? "review" : "hold"}">${escapeHtml(acct.recommended_action)}</span>
+            </div>
+          </div>
+          <div class="bg-card-body" style="display:flex; gap:16px; flex-wrap:wrap;">
+            <span style="font-size:0.72rem; color:var(--ink-2);">Intent <strong>${acct.intent_score}</strong></span>
+            <span style="font-size:0.72rem; color:var(--ink-2);">Firmographic <strong>${acct.firmographic_score}</strong></span>
+            <span style="font-size:0.72rem; color:var(--ink-2);">Maturity <strong>${escapeHtml(acct.buying_group_maturity)}</strong></span>
+            <span style="font-size:0.72rem; color:var(--ink-2);">Intent Tier <strong>${escapeHtml(acct.intent_tier)}</strong></span>
+          </div>
+        </div>` : "";
 
         const tr = document.createElement("tr");
         tr.className = "breakdown-row";
-        tr.innerHTML = `<td colspan="${colSpan}" style="padding:12px 16px 16px;">
-          <div class="breakdown-grid">${cards}</div>
-          ${coverageHtml}
-          ${storyHtml}
+        tr.innerHTML = `<td colspan="${colSpan}">
+          <div class="breakdown-inner">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+              ${buyingGroupCard}
+              ${acctHtml}
+            </div>
+            <div class="breakdown-grid">${cards}</div>
+            ${coverageHtml}
+            ${storyHtml}
+          </div>
         </td>`;
         return tr;
       }
 
       function renderBatchResults(payload) {
         const results = payload.results || [];
-        const deliverCount = results.filter((item) => item.delivery_decision === "deliver").length;
+        const deliverCount = results.filter(r => r.delivery_decision === "deliver").length;
         const holdOrReview = results.length - deliverCount;
-        const averageScore = results.length
-          ? Math.round(results.reduce((sum, item) => sum + item.approval_score, 0) / results.length)
+        const avgScore = results.length
+          ? Math.round(results.reduce((s, r) => s + r.approval_score, 0) / results.length)
           : 0;
 
         refs.statTotal.textContent = String(results.length);
         refs.statDeliver.textContent = String(deliverCount);
         refs.statReviewHold.textContent = String(holdOrReview);
-        refs.statAverage.textContent = String(averageScore);
+        refs.statAverage.textContent = String(avgScore);
         refs.resultsEmpty.hidden = results.length > 0;
         refs.resultsTableWrap.hidden = results.length === 0;
         refs.resultsTableBody.innerHTML = "";
@@ -1657,44 +2031,47 @@
         renderDistribution(results);
 
         const COL_SPAN = 8;
-        results.forEach((item) => {
+        results.forEach(item => {
           const original = state.leadLookup.get(item.lead_id);
           const sc = scoreClass(item.approval_score);
           const topReason = item.top_reasons?.[0]?.message || "—";
           const row = document.createElement("tr");
           row.style.cursor = "pointer";
+
+          const decCls = `badge-${item.delivery_decision}`;
+          const quadCls = `badge-${item.quadrant.toLowerCase()}`;
+
           row.innerHTML = `
             <td>
-              <strong>${item.lead_id}</strong>
-              <div class="muted">${item.predicted_outcome}</div>
+              <div class="cell-primary">${escapeHtml(item.lead_id)}</div>
+              <div class="cell-secondary">${escapeHtml(item.predicted_outcome)}</div>
             </td>
             <td>
-              <strong>${escapeHtml(original?.company?.company_name || "Unknown")}</strong>
-              <div class="muted">${escapeHtml(original?.company?.domain || "")}</div>
+              <div class="cell-primary">${escapeHtml(original?.company?.company_name || "—")}</div>
+              <div class="cell-secondary">${escapeHtml(original?.company?.domain || "")}</div>
             </td>
             <td>
               <div class="score-gauge">
                 <div class="score-top">
-                  <span class="score-number ${sc}">${item.approval_score}</span>
-                  <span class="score-max">/ 100</span>
+                  <span class="score-num ${sc}">${item.approval_score}</span>
+                  <span class="score-denom">/100</span>
                 </div>
-                <div class="score-bar-track">
-                  <div class="score-bar-fill ${sc}" style="width:${item.approval_score}%"></div>
-                </div>
-                <div class="muted" style="font-size:0.76rem;">${item.campaign_mode}</div>
+                <div class="score-track"><div class="score-fill ${sc}" style="width:${item.approval_score}%"></div></div>
+                <div class="score-mode">${item.campaign_mode}</div>
               </div>
             </td>
-            <td><span class="badge ${item.delivery_decision}">${item.delivery_decision}</span></td>
-            <td><span class="badge ${item.quadrant.toLowerCase()}">${item.quadrant}</span></td>
-            <td style="max-width:240px; font-size:0.88rem;">${escapeHtml(topReason)}</td>
+            <td><span class="badge ${decCls}">${item.delivery_decision}</span></td>
+            <td><span class="badge ${quadCls}">${item.quadrant}</span></td>
+            <td style="max-width:220px; font-size:0.775rem; color:var(--ink-2); line-height:1.4;">${escapeHtml(topReason)}</td>
             <td>
-              <strong>${item.buying_group.unique_persona_count} persona${item.buying_group.unique_persona_count !== 1 ? "s" : ""}</strong>
-              <div class="muted">BDR: ${item.buying_group.bdr_trigger ? "✓ Yes" : "No"}</div>
+              ${item.buying_group ? `
+              <div class="cell-primary">${item.buying_group.unique_persona_count} persona${item.buying_group.unique_persona_count !== 1 ? "s" : ""}</div>
+              <div class="cell-secondary">BDR: ${item.buying_group.bdr_trigger ? "Yes" : "No"}</div>
               ${item.buying_group.decision_maker_coverage_pct != null && item.buying_group.product_category
-                ? `<div style="margin-top:3px;">${Object.entries(item.buying_group.role_coverage || {}).slice(0,2).map(([r,p]) => `<span class="role-pill ${rolePillClass(r)}">${r}: ${p}%</span>`).join("")}</div>`
-                : ""}
+                ? `<div style="margin-top:2px;">${Object.entries(item.buying_group.role_coverage || {}).slice(0,2).map(([r,p]) => `<span class="role-pill ${rolePillClass(r)}">${r} ${p}%</span>`).join("")}</div>`
+                : ""}` : '<div class="cell-secondary">—</div>'}
             </td>
-            <td><button class="expand-btn" title="Show breakdown">▼</button></td>
+            <td><button class="expand-btn" title="Expand">▾</button></td>
           `;
 
           const breakdownRow = renderBreakdownRow(item, COL_SPAN);
@@ -1703,7 +2080,8 @@
           row.addEventListener("click", () => {
             const isOpen = !breakdownRow.hidden;
             breakdownRow.hidden = isOpen;
-            row.querySelector(".expand-btn").textContent = isOpen ? "▼" : "▲";
+            row.classList.toggle("expanded", !isOpen);
+            row.querySelector(".expand-btn").textContent = isOpen ? "▾" : "▴";
           });
 
           refs.resultsTableBody.appendChild(row);
@@ -1714,48 +2092,20 @@
       function renderCampaignReport(report) {
         refs.reportAccounts.textContent = String(report.total_accounts || 0);
         refs.reportTriggers.textContent = String(report.accounts_with_bdr_trigger || 0);
-        refs.reportStatus.textContent = report.total_accounts
-          ? "Campaign report refreshed from persisted score audits."
-          : "No campaign report rows yet.";
+        refs.reportStatus.textContent = report.total_accounts ? "Report ready." : "No report rows.";
         refs.reportEmpty.hidden = (report.report_items || []).length > 0;
         refs.reportTableWrap.hidden = (report.report_items || []).length === 0;
         refs.reportTableBody.innerHTML = "";
-
-        (report.report_items || []).forEach((item) => {
-          // Role coverage pills from account-level summary (take from last scored lead)
-          const roleCov = item.role_coverage || {};
-          const rolePillsHtml = Object.entries(roleCov).map(([r, p]) =>
-            `<span class="role-pill ${rolePillClass(r)}">${r}: ${p}%</span>`
-          ).join("") || "<span style='color:var(--muted);font-size:0.78rem;'>n/a</span>";
-
-          const dmPct = item.decision_maker_coverage_pct;
-          const dmHtml = dmPct != null
-            ? `<div class="score-gauge" style="min-width:70px;"><div class="score-top"><span class="score-number ${dmPct >= 50 ? 'score-deliver' : dmPct >= 1 ? 'score-review' : 'score-hold'}" style="font-size:1.1rem;">${dmPct}%</span></div><div class="score-bar-track"><div class="score-bar-fill ${dmPct >= 50 ? 'score-deliver' : dmPct >= 1 ? 'score-review' : 'score-hold'}" style="width:${dmPct}%"></div></div></div>`
-            : "<span style='color:var(--muted);font-size:0.78rem;'>n/a</span>";
-
+        (report.report_items || []).forEach(item => {
           const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${escapeHtml(item.account_domain)}</td>
-            <td>${item.product_category ? escapeHtml(item.product_category) : "<span style='color:var(--muted);font-size:0.78rem;'>—</span>"}</td>
-            <td>${item.unique_persona_count}</td>
-            <td>${item.persona_completeness_score}%</td>
-            <td>${dmHtml}</td>
-            <td style="white-space:nowrap;">${rolePillsHtml}</td>
-            <td>${item.journey_stage_reached}</td>
-            <td>${item.bdr_trigger ? "<span class='badge deliver'>Yes</span>" : "<span class='badge hold'>No</span>"}</td>
-            <td style="font-size:0.82rem;">${escapeHtml((item.missing_personas || []).slice(0,3).join("; ") || "None")}</td>
-          `;
+          row.innerHTML = `<td>${escapeHtml(item.account_domain)}</td><td>${item.unique_persona_count}</td><td>${item.bdr_trigger ? "Yes" : "No"}</td>`;
           refs.reportTableBody.appendChild(row);
         });
       }
 
       function downloadScoredOutput() {
-        if (!state.batchResults?.results?.length) {
-          setPortalStatus("There is no scored output to download yet.", "danger");
-          return;
-        }
-
-        const rows = state.batchResults.results.map((item) => {
+        if (!state.batchResults?.results?.length) { setStrip("No scored output to download.", "error"); return; }
+        const rows = state.batchResults.results.map(item => {
           const lead = state.leadLookup.get(item.lead_id);
           return {
             lead_id: item.lead_id,
@@ -1766,32 +2116,26 @@
             delivery_decision: item.delivery_decision,
             quadrant: item.quadrant,
             campaign_mode: item.campaign_mode,
-            buying_group_score: item.buying_group.buying_group_score,
-            bdr_trigger: item.buying_group.bdr_trigger,
+            buying_group_score: item.buying_group?.buying_group_score ?? 0,
+            bdr_trigger: item.buying_group?.bdr_trigger ?? false,
             top_reason_1: item.top_reasons?.[0]?.message || "",
             top_reason_2: item.top_reasons?.[1]?.message || "",
             top_reason_3: item.top_reasons?.[2]?.message || "",
           };
         });
-
         downloadCsv("ace_scored_output.csv", rows);
       }
 
       function csvToObjects(text) {
         const cleanedText = String(text || "").replace(/^\uFEFF/, "").trim();
         const rows = parseCsv(cleanedText);
-        if (!rows.length) {
-          return { headers: [], rows: [] };
-        }
-        const headers = rows[0].map((value) => normaliseHeader(value));
-        const objects = rows
-          .slice(1)
-          .filter((row) => row.some((cell) => String(cell || "").trim()))
-          .map((row) => {
+        if (!rows.length) return { headers: [], rows: [] };
+        const headers = rows[0].map(v => normaliseHeader(v));
+        const objects = rows.slice(1)
+          .filter(row => row.some(cell => String(cell || "").trim()))
+          .map(row => {
             const item = {};
-            headers.forEach((header, index) => {
-              item[header] = (row[index] || "").trim();
-            });
+            headers.forEach((h, i) => { item[h] = (row[i] || "").trim(); });
             return item;
           });
         return { headers, rows: objects };
@@ -1801,207 +2145,108 @@
         const parsed = csvToObjects(text);
         const headers = parsed.headers || [];
         const rows = parsed.rows || [];
-        if (!rows.length) {
-          return {};
-        }
-
-        const fieldColumn = headers.find((header) => ["field", "key", "name"].includes(header));
-        const valueColumn = headers.find((header) => header === "value");
+        if (!rows.length) return {};
+        const fieldColumn = headers.find(h => ["field", "key", "name"].includes(h));
+        const valueColumn = headers.find(h => h === "value");
         if (fieldColumn && valueColumn) {
-          return rows.reduce((accumulator, row) => {
+          return rows.reduce((acc, row) => {
             const key = normaliseHeader(row[fieldColumn]);
-            if (key) {
-              accumulator[key] = row[valueColumn] || "";
-            }
-            return accumulator;
+            if (key) acc[key] = row[valueColumn] || "";
+            return acc;
           }, {});
         }
-
         return rows[0];
       }
 
       function parseCsv(text) {
         const rows = [];
-        let row = [];
-        let cell = "";
-        let inQuotes = false;
-
-        for (let index = 0; index < text.length; index += 1) {
-          const char = text[index];
-          const nextChar = text[index + 1];
-
-          if (char === "\"") {
-            if (inQuotes && nextChar === "\"") {
-              cell += "\"";
-              index += 1;
-            } else {
-              inQuotes = !inQuotes;
-            }
+        let row = [], cell = "", inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+          const c = text[i], n = text[i+1];
+          if (c === '"') { if (inQuotes && n === '"') { cell += '"'; i++; } else { inQuotes = !inQuotes; } continue; }
+          if (c === ',' && !inQuotes) { row.push(cell); cell = ""; continue; }
+          if ((c === '\n' || c === '\r') && !inQuotes) {
+            if (c === '\r' && n === '\n') i++;
+            row.push(cell); rows.push(row); row = []; cell = "";
             continue;
           }
-
-          if (char === "," && !inQuotes) {
-            row.push(cell);
-            cell = "";
-            continue;
-          }
-
-          if ((char === "\n" || char === "\r") && !inQuotes) {
-            if (char === "\r" && nextChar === "\n") {
-              index += 1;
-            }
-            row.push(cell);
-            rows.push(row);
-            row = [];
-            cell = "";
-            continue;
-          }
-
-          cell += char;
+          cell += c;
         }
-
-        if (cell.length || row.length) {
-          row.push(cell);
-          rows.push(row);
-        }
-
+        if (cell.length || row.length) { row.push(cell); rows.push(row); }
         return rows;
       }
 
       function normaliseHeader(value) {
-        return String(value || "")
-          .replace(/^\uFEFF/, "")
-          .trim()
-          .toLowerCase()
-          .replace(/\s+/g, "_")
-          .replace(/[^\w]/g, "_")
-          .replace(/_+/g, "_")
-          .replace(/^_|_$/g, "");
-      }
-
-      function setPortalStatus(message, mode) {
-        refs.statusMessage.textContent = message;
-        refs.importPill.className =
-          mode === "danger" ? "pill danger" : mode === "warn" ? "pill warn" : "pill";
+        return String(value || "").replace(/^\uFEFF/, "").trim().toLowerCase()
+          .replace(/\s+/g, "_").replace(/[^\w]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "");
       }
 
       function downloadLeadTemplate() {
-        downloadCsv(
-          "ace_lead_upload_template.csv",
-          [
-            {
-              lead_id: "ACE-UPL-001",
-              submitted_at: new Date().toISOString(),
-              source_partner: "partner-alpha",
-              email: "nina.carter@northstarhealth.com",
-              first_name: "Nina",
-              last_name: "Carter",
-              job_title: "VP Clinical Operations",
-              linkedin_url: "",
-              company_name: "Northstar Health",
-              domain: "northstarhealth.com",
-              industry: "healthcare",
-              geography: "United States",
-              company_size: "1000+",
-              partner_id: "partner-alpha",
-              approval_rate_6m: "0.81",
-              approval_rate_client_6m: "0.79",
-              approval_rate_vertical_6m: "0.76",
-              client_acceptance_rate_6m: "0.74",
-              email1_opened: "1",
-              email1_clicked: "1",
-              email2_opened: "1",
-              email2_clicked: "0",
-              download_count: "1",
-              visit_count: "0"
-            },
-          ]
-        );
+        downloadCsv("ace_lead_upload_template.csv", [{
+          lead_id: "ACE-UPL-001", submitted_at: new Date().toISOString(),
+          source_partner: "partner-alpha", email: "nina.carter@northstarhealth.com",
+          first_name: "Nina", last_name: "Carter", job_title: "VP Clinical Operations",
+          linkedin_url: "", company_name: "Northstar Health", domain: "northstarhealth.com",
+          industry: "healthcare", geography: "United States", company_size: "1000+",
+          partner_id: "partner-alpha", approval_rate_6m: "0.81",
+          approval_rate_client_6m: "0.79", approval_rate_vertical_6m: "0.76",
+          client_acceptance_rate_6m: "0.74", email1_opened: "1", email1_clicked: "1",
+          email2_opened: "1", email2_clicked: "0", download_count: "1", visit_count: "0"
+        }]);
       }
 
       function downloadCampaignTemplate() {
-        downloadCsv(
-          "ace_campaign_context_template.csv",
-          [
-            {
-              client_id: "client-health-01",
-              campaign_id: "HC-BOFU-2026-01",
-              campaign_name: "Clinical ROI Acceleration",
-              asset_name: "Clinical ROI Case Study",
-              asset_type: "case study",
-              asset_stage_override: "BOFU",
-              topic: "decision",
-              audience: "late stage shortlist",
-              volume: "highly targeted",
-              sequence: "decision",
-              vertical_override: "healthcare",
-              history_approval_rate: "0.77",
-              partner_id: "partner-alpha",
-              approval_rate_6m: "0.81",
-              approval_rate_client_6m: "0.79",
-              approval_rate_vertical_6m: "0.76",
-              client_acceptance_rate_6m: "0.74",
-              brief_text: "Target healthcare provider executives across clinical, finance, and IT teams in the United States. Prioritize enterprise hospitals evaluating ROI and implementation readiness."
-            }
-          ]
-        );
+        downloadCsv("ace_campaign_context_template.csv", [{
+          client_id: "client-health-01", campaign_id: "HC-BOFU-2026-01",
+          campaign_name: "Clinical ROI Acceleration", asset_name: "Clinical ROI Case Study",
+          asset_type: "case study", asset_stage_override: "BOFU", topic: "decision",
+          audience: "late stage shortlist", volume: "highly targeted", sequence: "decision",
+          vertical_override: "healthcare", history_approval_rate: "0.77",
+          partner_id: "partner-alpha", approval_rate_6m: "0.81",
+          approval_rate_client_6m: "0.79", approval_rate_vertical_6m: "0.76",
+          client_acceptance_rate_6m: "0.74",
+          brief_text: "Target healthcare provider executives across clinical, finance, and IT teams in the United States."
+        }]);
       }
 
       function resetCampaignForm() {
         refs.campaignForm.reset();
-        refs.campaignStatusMessage.textContent = "Campaign fields reset to the default values shown in the form.";
+        state.campaignSpecFile = null;
+        refs.campaignSpecFileInput.value = "";
+        refs.loadCampaignXlsxButton.textContent = "Upload Campaign Spec";
+        refs.clearCampaignSpecButton.style.display = "none";
+        refs.campaignStatusMessage.textContent = "Fields reset to defaults.";
       }
 
       function downloadCsv(filename, rows) {
-        if (!rows.length) {
-          return;
-        }
+        if (!rows.length) return;
         const headers = Object.keys(rows[0]);
-        const lines = [
-          headers.join(","),
-          ...rows.map((row) =>
-            headers
-              .map((header) => csvEscape(row[header]))
-              .join(",")
-          ),
-        ];
+        const lines = [headers.join(","), ...rows.map(row => headers.map(h => csvEscape(row[h])).join(","))];
         const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
+        link.href = url; link.download = filename;
+        document.body.appendChild(link); link.click(); link.remove();
         URL.revokeObjectURL(url);
       }
 
       function csvEscape(value) {
         const raw = value === null || value === undefined ? "" : String(value);
-        return /[",\n]/.test(raw) ? `"${raw.replace(/"/g, "\"\"")}"` : raw;
+        return /[",\n]/.test(raw) ? `"${raw.replace(/"/g, '""')}"` : raw;
       }
 
       async function safeJson(response) {
-        try {
-          return await response.json();
-        } catch (error) {
-          return null;
-        }
+        try { return await response.json(); } catch { return null; }
       }
 
       function escapeHtml(value) {
         return String(value || "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
       }
 
       function cssEscape(value) {
-        if (window.CSS?.escape) {
-          return window.CSS.escape(value);
-        }
+        if (window.CSS?.escape) return window.CSS.escape(value);
         return String(value || "").replace(/["\\]/g, "\\$&");
       }
     </script>

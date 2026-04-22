@@ -20,7 +20,6 @@ REQUIRED_FIELDS = [
     "last_name",
     "job_title",
     "company_name",
-    "domain",
     "industry",
     "geography",
 ]
@@ -53,6 +52,14 @@ HEADER_ALIASES: dict[str, list[str]] = {
     "download_count": ["downloads", "downloaded", "asset_downloads"],
     "visit_count": ["visits", "page_visits", "web_visits"],
     "asset_name": ["asset", "content_name", "content_title", "resource_name", "asset_title", "content_piece"],
+    # Firmographic trajectory (feed into account score)
+    "headcount_6m_delta": ["headcount_delta", "employee_growth", "headcount_change", "employee_delta"],
+    "latest_funding_date": ["funding_date", "last_funding_date", "investment_date"],
+    "funding_stage": ["funding_round", "investment_stage", "funding_series"],
+    "executive_change_90d": ["exec_change", "executive_change", "leadership_change", "cxo_change"],
+    "tech_stack": ["technology_stack", "technologies", "tech_tools", "martech"],
+    # Account-level engagement (site visits from MAP/analytics)
+    "account_visit_count": ["account_visits", "account_page_views", "company_visits", "org_visits"],
 }
 
 
@@ -195,16 +202,42 @@ def _build_lead_record(
     index: int,
     campaign_context: dict[str, Any],
 ) -> LeadRecord:
-    submitted_at = canonical_row.get("submitted_at") or datetime.now(UTC).isoformat()
+    submitted_at = _parse_datetime(canonical_row.get("submitted_at")).isoformat()
     lead_id = canonical_row.get("lead_id") or f"{campaign_context.get('campaign_id', 'ACE')}-{index + 1:04d}"
+    email = canonical_row.get("email") or ""
+    domain = canonical_row.get("domain") or (email.split("@")[-1] if "@" in email else "")
     asset_name = campaign_context.get("asset_name") or canonical_row.get("asset_name") or None
+
+    # CampaignContext.model_dump() nests targeting under "target_profile"
+    ctx_tp = campaign_context.get("target_profile") or {}
+    ctx_industries = ctx_tp.get("industries") or ([campaign_context.get("vertical_override")] if campaign_context.get("vertical_override") else [])
+    ctx_geographies = ctx_tp.get("geographies") or []
+    ctx_company_sizes = ctx_tp.get("company_sizes") or []
+    ctx_job_functions = ctx_tp.get("job_functions") or []
+    ctx_seniorities = ctx_tp.get("seniorities") or []
+    ctx_personas = ctx_tp.get("required_personas") or []
+
+    # Build buying_group_definition from required_personas when none is explicitly provided
+    bg_definition = campaign_context.get("buying_group_definition") or None
+    if bg_definition is None and ctx_personas:
+        campaign_name_val = campaign_context.get("campaign_name") or campaign_context.get("campaign_id") or "Campaign"
+        bg_definition = {
+            "product_category": campaign_name_val,
+            "group_type": "recommended",
+            "is_verified": False,
+            "personas": [
+                {"job_function": p, "job_level": "Director+", "role": "Priority"}
+                for p in ctx_personas
+            ],
+        }
+
     return LeadRecord.model_validate(
         {
             "lead_id": lead_id,
             "submitted_at": submitted_at,
             "source_partner": canonical_row.get("source_partner") or campaign_context.get("partner_id"),
             "contact": {
-                "email": canonical_row.get("email"),
+                "email": email or None,
                 "first_name": canonical_row.get("first_name"),
                 "last_name": canonical_row.get("last_name"),
                 "job_title": canonical_row.get("job_title"),
@@ -212,7 +245,7 @@ def _build_lead_record(
             },
             "company": {
                 "company_name": canonical_row.get("company_name"),
-                "domain": canonical_row.get("domain"),
+                "domain": domain,
                 "industry": canonical_row.get("industry"),
                 "geography": canonical_row.get("geography"),
                 "company_size": canonical_row.get("company_size") or None,
@@ -224,12 +257,12 @@ def _build_lead_record(
                 "brief_text": campaign_context.get("brief_text") or None,
                 "asset_name": asset_name,
                 "target_profile": {
-                    "industries": [campaign_context.get("vertical_override")] if campaign_context.get("vertical_override") else [],
-                    "geographies": [str(canonical_row.get("geography", "")).lower()] if canonical_row.get("geography") else [],
-                    "company_sizes": [str(canonical_row.get("company_size", "")).lower()] if canonical_row.get("company_size") else [],
-                    "job_functions": [],
-                    "seniorities": [],
-                    "required_personas": [],
+                    "industries": ctx_industries,
+                    "geographies": ctx_geographies or ([str(canonical_row.get("geography", "")).lower()] if canonical_row.get("geography") else []),
+                    "company_sizes": ctx_company_sizes or ([str(canonical_row.get("company_size", "")).lower()] if canonical_row.get("company_size") else []),
+                    "job_functions": ctx_job_functions,
+                    "seniorities": ctx_seniorities,
+                    "required_personas": ctx_personas,
                 },
                 "taxonomy": {
                     "asset_type": campaign_context.get("asset_type") or None,
@@ -241,7 +274,7 @@ def _build_lead_record(
                     "vertical_override": campaign_context.get("vertical_override") or None,
                 },
                 "history_approval_rate": _parse_float(campaign_context.get("history_approval_rate")),
-                "buying_group_definition": campaign_context.get("buying_group_definition") or None,
+                "buying_group_definition": bg_definition,
             },
             "partner_signals": {
                 "partner_id": canonical_row.get("partner_id") or campaign_context.get("partner_id") or None,
@@ -259,10 +292,49 @@ def _build_lead_record(
                     canonical_row.get("client_acceptance_rate_6m") or campaign_context.get("client_acceptance_rate_6m")
                 ),
                 "recent_personas": [],
+                "account_visit_count": _parse_int(canonical_row.get("account_visit_count")) or None,
+                "firmographic": _build_firmographic(canonical_row) or None,
             },
             "engagement_events": _build_engagement_events(canonical_row, submitted_at, asset_name),
         }
     )
+
+
+def _build_firmographic(canonical_row: dict[str, str]) -> dict[str, Any] | None:
+    """Build a FirmographicTrajectory dict from canonical row values if any are present."""
+    headcount_delta = canonical_row.get("headcount_6m_delta")
+    funding_date = canonical_row.get("latest_funding_date")
+    funding_stage = canonical_row.get("funding_stage")
+    exec_change = canonical_row.get("executive_change_90d")
+    tech_stack_raw = canonical_row.get("tech_stack")
+
+    headcount_int: int | None = None
+    if headcount_delta:
+        try:
+            headcount_int = int(float(headcount_delta))
+        except (TypeError, ValueError):
+            pass
+
+    funding_date_parsed: str | None = None
+    if funding_date:
+        try:
+            funding_date_parsed = _parse_datetime(funding_date).isoformat()
+        except Exception:
+            pass
+
+    exec_change_bool = str(exec_change).strip().lower() in ("1", "true", "yes") if exec_change else False
+    tech_list = [t.strip() for t in tech_stack_raw.split(",") if t.strip()] if tech_stack_raw else []
+
+    if not any([headcount_int is not None, funding_date_parsed, funding_stage, exec_change_bool, tech_list]):
+        return None
+
+    return {
+        "headcount_6m_delta": headcount_int,
+        "latest_funding_date": funding_date_parsed,
+        "funding_stage": funding_stage or None,
+        "executive_change_90d": exec_change_bool,
+        "tech_stack": tech_list,
+    }
 
 
 def _build_engagement_events(canonical_row: dict[str, str], submitted_at: str, asset_name: str | None) -> list[dict[str, Any]]:
@@ -295,13 +367,22 @@ def _build_engagement_events(canonical_row: dict[str, str], submitted_at: str, a
 def _parse_datetime(value: str | None) -> datetime:
     if not value:
         return datetime.now(UTC)
+    raw = re.sub(r"\s*\([^)]*\)\s*$", "", str(value).strip())  # strip JS "(Coordinated Universal Time)"
+    raw = raw.replace("Z", "+00:00")
     try:
-        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(raw)
         if parsed.tzinfo is None:
             return parsed.replace(tzinfo=UTC)
         return parsed.astimezone(UTC)
     except ValueError:
-        return datetime.now(UTC)
+        pass
+    for fmt in ("%a %b %d %Y %H:%M:%S GMT%z", "%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y", "%d-%m-%Y"):
+        try:
+            parsed = datetime.strptime(raw.strip(), fmt)
+            return parsed.replace(tzinfo=UTC) if parsed.tzinfo is None else parsed.astimezone(UTC)
+        except ValueError:
+            continue
+    return datetime.now(UTC)
 
 
 def _parse_float(value: Any) -> float | None:

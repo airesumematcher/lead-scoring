@@ -159,12 +159,37 @@ class PersonaSnapshot(BaseModel):
         return value.astimezone(UTC)
 
 
+class FirmographicTrajectory(BaseModel):
+    """Directional firmographic signals — trajectory matters more than snapshot."""
+
+    headcount_6m_delta: int | None = None  # positive = growing, negative = shrinking
+    latest_funding_date: datetime | None = None
+    latest_funding_amount_usd: int | None = None
+    funding_stage: str | None = None  # seed, series_a, series_b, series_c, pe, public
+    tech_stack: list[str] = Field(default_factory=list)  # installed technologies (from BuiltWith/HG)
+    executive_change_90d: bool = False  # new CIO/CFO/CMO in last 90 days
+
+
+class ThirdPartyIntentSignal(BaseModel):
+    """Account-level intent surge from a third-party data provider."""
+
+    topic: str  # "healthcare analytics", "cloud migration", etc.
+    surge_score: float = Field(ge=0.0, le=100.0)
+    source: str = "bombora"  # bombora, g2, techtarget
+    week_ending: datetime
+
+
 class AccountSignals(BaseModel):
     """Account-level context used for Layer 2."""
 
     account_id: str | None = None
     client_acceptance_rate_6m: float | None = Field(default=None, ge=0.0, le=1.0)
     recent_personas: list[PersonaSnapshot] = Field(default_factory=list)
+    # New: external enrichment signals
+    firmographic: FirmographicTrajectory | None = None
+    intent_signals: list[ThirdPartyIntentSignal] = Field(default_factory=list)
+    cross_campaign_persona_count: int | None = None  # platform-wide persona count (pre-fetched)
+    account_visit_count: int | None = None  # site visits attributed to this account (from MAP/analytics)
 
 
 class ContactPayload(BaseModel):
@@ -254,8 +279,6 @@ class LeadAnalysis(BaseModel):
     icp_match: SignalDetail
     data_quality: SignalDetail
     partner_signal: SignalDetail
-    client_history: SignalDetail
-    campaign_history: SignalDetail
 
 
 class LeadQualityBreakdown(BaseModel):
@@ -264,8 +287,6 @@ class LeadQualityBreakdown(BaseModel):
     fit_score: int
     intent_score: int
     partner_signal_score: int
-    client_history_score: int
-    campaign_history_score: int
     data_quality_score: int
     icp_match_score: int
 
@@ -307,6 +328,7 @@ class LeadScoreResult(BaseModel):
     top_reasons: list[TopReason]
     analysis: LeadAnalysis
     buying_group: BuyingGroupSummary
+    account_score: AccountScoreResult | None = None
     selling_story: SellingStory | None = None
     score_audit_id: int | None = None
     scored_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -375,3 +397,59 @@ class RetrainResult(BaseModel):
     model_path: str | None = None
     metadata_path: str | None = None
     message: str
+
+
+class MLEngagementSignals(BaseModel):
+    """Madison Logic platform engagement signals for an account — used for Moody's-style account scoring."""
+
+    cs_lead_count: int = 0                    # content syndication leads delivered this account
+    display_impressions: int = 0              # display ad impressions served
+    display_clicks: int = 0                   # display ad clicks
+    display_ctr: float = 0.0                  # click-through rate as a percentage (e.g. 0.25 = 0.25%)
+    site_visits: int = 0                      # site visits attributed to this account
+    trending_mli_topic_count: int = 0         # # of MLI intent topics trending over last 7 weeks
+    top_mli_topic: str | None = None          # highest-scoring MLI topic label
+    top_mli_topic_stage: FunnelStage | None = None  # TOFU / MOFU / BOFU for the top topic
+
+
+class AccountScoreRequest(BaseModel):
+    """Request to score an account's readiness to buy."""
+
+    domain: str
+    client_id: str | None = None
+    # Optional: caller can pre-supply external enrichment; if absent, platform uses what it has stored
+    firmographic: FirmographicTrajectory | None = None
+    intent_signals: list[ThirdPartyIntentSignal] = Field(default_factory=list)
+    ml_engagement: MLEngagementSignals = Field(default_factory=MLEngagementSignals)
+
+
+class AccountScoreResult(BaseModel):
+    """Account-level readiness score and buying group status."""
+
+    domain: str
+    account_score: int  # 0-100 composite
+    intent_score: int  # 0-100 from third-party intent signals
+    firmographic_score: int  # 0-100 from trajectory signals
+    moodys_engagement_score: int = 0  # 0-100 scaled from Moody's CS+CTR+SiteVisit+MLI+TopicStage signals
+    intent_tier: str = "Low"  # "High" | "Med" | "Low" per Moody's thresholds (≥41 High, 20-40 Med, <20 Low)
+    buying_group_maturity: str  # "early" | "developing" | "mature"
+    persona_count_platform_wide: int  # unique personas across all clients/campaigns
+    persona_count_client: int  # unique personas for this client
+    function_coverage: list[str]
+    in_market_signals: list[str]  # human-readable list of active buying signals
+    missing_personas: list[str]  # persona functions not yet engaged
+    recommended_action: str  # "hold" | "engage" | "accelerate"
+    scored_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+class DealOutcomeLabel(BaseModel):
+    """CRM deal outcome linked to a previously scored lead — closes the learning loop."""
+
+    lead_id: str
+    account_domain: str
+    campaign_id: str
+    opportunity_id: str | None = None
+    deal_stage: str  # qualified, proposal, closed_won, closed_lost
+    closed_at: datetime | None = None
+    revenue_usd: float | None = None
+    crm_source: str = "manual"  # salesforce, hubspot, manual

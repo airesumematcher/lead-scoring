@@ -114,6 +114,47 @@ class BatchJob(Base):
         return f"<BatchJob(job_name={self.job_name}, status={self.status})>"
 
 
+class Account(Base):
+    """Persistent account entity — scored independently of individual leads."""
+
+    __tablename__ = "accounts"
+
+    id = Column(Integer, primary_key=True)
+    domain = Column(String(255), unique=True, nullable=False, index=True)
+    account_score = Column(Float, nullable=True)
+    intent_score = Column(Float, nullable=True)
+    firmographic_score = Column(Float, nullable=True)
+    buying_group_maturity = Column(String(20), nullable=True)  # early, developing, mature
+    firmographic_snapshot = Column(Text, nullable=True)  # JSON: FirmographicTrajectory
+    intent_signals_snapshot = Column(Text, nullable=True)  # JSON: list[ThirdPartyIntentSignal]
+    last_enriched_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Account(domain={self.domain}, account_score={self.account_score})>"
+
+
+class DealOutcome(Base):
+    """CRM deal outcome linked to a scored lead — enables training on conversion, not just delivery."""
+
+    __tablename__ = "deal_outcomes"
+
+    id = Column(Integer, primary_key=True)
+    lead_id = Column(String(50), nullable=False, index=True)
+    account_domain = Column(String(255), nullable=False, index=True)
+    campaign_id = Column(String(100), nullable=False, index=True)
+    opportunity_id = Column(String(100), nullable=True)
+    deal_stage = Column(String(50), nullable=False)  # qualified, proposal, closed_won, closed_lost
+    closed_at = Column(DateTime, nullable=True)
+    revenue_usd = Column(Float, nullable=True)
+    crm_source = Column(String(50), nullable=True, default="manual")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<DealOutcome(lead_id={self.lead_id}, deal_stage={self.deal_stage})>"
+
+
 class ScoreAuditRecord(Base):
     """PRD-aligned score audit log stored for every scored lead."""
 

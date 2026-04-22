@@ -6,6 +6,10 @@ thresholds:
   high_intent_score: 55
   bdr_trigger_personas: 2
   bdr_dm_coverage_pct: 50
+  # Account-level action thresholds
+  account_accelerate_score: 70  # account_score >= 70 → accelerate (immediate outreach)
+  account_engage_score: 45      # account_score >= 45 → engage (nurture sequence)
+  # Below account_engage_score → hold
 
 buying_group_role_weights:
   Decision-Maker: 0.40
@@ -16,18 +20,26 @@ buying_group_role_weights:
 
 weights:
   approval:
-    fit_score: 0.28
-    intent_score: 0.22
-    partner_signal_score: 0.18
-    client_history_score: 0.10
-    campaign_history_score: 0.08
-    data_quality_score: 0.08
-    icp_match_score: 0.06
+    fit_score: 0.34
+    intent_score: 0.27
+    partner_signal_score: 0.22
+    data_quality_score: 0.10
+    icp_match_score: 0.07
   buying_group:
     unique_persona_count: 0.35
     persona_completeness_score: 0.25
     journey_stage_score: 0.20
     account_history_score: 0.20
+  account:
+    # Account-level scoring weights (used by /accounts/score)
+    # Intent is the strongest signal: third-party surges predict active buying cycles
+    intent: 0.40
+    # Firmographic trajectory: growth, funding, executive change
+    firmographic: 0.25
+    # Buying group maturity: how many persona functions have engaged platform-wide
+    buying_group_maturity: 0.25
+    # Data completeness bonus (remaining 10% allocated in engine)
+    data_completeness: 0.10
 
 engagement_weights:
   open: 8
@@ -220,6 +232,8 @@ vertical_personas:
     - finance
     - it
     - operations
+    - risk
+    - compliance
   manufacturing:
     - operations
     - finance
@@ -228,6 +242,92 @@ vertical_personas:
     - finance
     - it
     - operations
+
+# Moody's account scoring model — derived from Louise's live account scoring spreadsheet (04.03)
+# Total Account Score = CS Score + CTR Score + Site Visit Score + MLI Score + Top Topic Score
+# Intent tier: High ≥ 41, Med 20–40, Low < 20
+moodys_account_scoring:
+  cs_score_tiers:
+    # content syndication leads → CS score points
+    - {min_leads: 0, max_leads: 0, score: 0}
+    - {min_leads: 1, max_leads: 1, score: 5}
+    - {min_leads: 2, max_leads: 2, score: 10}
+    - {min_leads: 3, max_leads: 3, score: 15}
+    - {min_leads: 4, score: 20}
+  ctr_score_tiers:
+    # display click-through rate (%) → CTR score points
+    - {min_ctr: 0.0,  max_ctr: 0.0,  score: 0}
+    - {min_ctr: 0.01, max_ctr: 0.19, score: 5}
+    - {min_ctr: 0.20, max_ctr: 1.26, score: 10}
+    - {min_ctr: 1.27, score: 15}
+  site_visit_score_tiers:
+    # site visits → site visit score points
+    - {min_visits: 0,   max_visits: 0,   score: 0}
+    - {min_visits: 1,   max_visits: 20,  score: 5}
+    - {min_visits: 21,  max_visits: 224, score: 10}
+    - {min_visits: 225, score: 15}
+  intent_thresholds:
+    high: 41
+    med: 20
+    # below med threshold = Low
+
+# Intent topic → funnel stage mapping for Moody's / financial services vertical
+# Source: Moody's Account Scoring sheet (Topics By Funnel Stage tab)
+# TOFU=5 pts, MOFU=10 pts, BOFU=15 pts applied as Top Topic Score
+intent_topic_stages:
+  financial_services:
+    top_funnel:
+      - ai automation
+      - alternative investment
+      - asset management
+      - collateralized debt obligations (cdo)
+      - credit risk
+      - cyber security framework
+      - data analytics
+      - data driven strategy
+      - decision intelligence
+      - dynamic asset allocation
+      - financial analysis
+      - financial data
+      - financial industry regulatory authority (finra)
+      - financial risk
+      - fixed income
+      - hedge funds
+      - investment strategy and planning
+      - liquidity risk
+      - market research
+      - portfolio
+      - private credit
+      - private debt
+      - private equity
+      - revolving credit
+      - securities and exchange commission (sec)
+      - structured finance
+    mid_funnel:
+      - analytics software
+      - asset management software
+      - automated workflow
+      - business intelligence platform
+      - credit management
+      - debt management
+      - funding management
+      - hedge fund management software
+      - investment performance measurement software
+      - investment risk management
+      - investment risk management system
+      - investment software
+      - liquidity management
+      - market intelligence
+      - portfolio analytics
+      - portfolio management
+      - portfolio management system
+      - risk assessment
+      - sanctions screening
+      - treasury / cash / risk management
+      - workflow automation
+    bottom_funnel:
+      - moody's analytics
+      - moody's investors service
 
 geography_keywords:
   north_america: [united states, usa, us, canada, north america]
